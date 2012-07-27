@@ -18,6 +18,10 @@ tar -zxf $SRC/instructure-canvas-*.tar.gz -C $(dirname $WEBROOT)
 rm $SRC/instructure-canvas-*.tar.gz
 mv $(dirname $WEBROOT)/instructure-canvas-* $WEBROOT
 
+# tweak footer
+CONF=$WEBROOT/app/views/layouts/application.html.erb
+sed -i "s|</footer>|<div id='turnkey-credit' style='text-align:center;padding-top:20px;'><a href='http://www.turnkeylinux.org/canvas'>Canvas Appliance</a> - Powered by <a href='http://www.turnkeylinux.org'>TurnKey Linux</a></div>\n    </footer>|" $CONF
+
 # start mysql
 /etc/init.d/mysql start
 
