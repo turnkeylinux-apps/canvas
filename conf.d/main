@@ -113,6 +113,21 @@ chmod 640 $WEBROOT/config/*.yml
 # temp hack: remove buggy migration
 rm $WEBROOT/db/migrate/20120709180215_add_attachment_indexes_for_sorting.rb
 
+# preset answers, install canvas, populate database and compile assets
+export CANVAS_LMS_ADMIN_EMAIL=$ADMIN_MAIL
+export CANVAS_LMS_ADMIN_PASSWORD=$ADMIN_PASS
+export CANVAS_LMS_ACCOUNT_NAME="TurnKey Canvas"
+export CANVAS_LMS_STATS_COLLECTION="opt-out"
+
+cd $WEBROOT
+bundle install
+RAILS_ENV=production bundle exec rake db:initial_setup
+bundle exec rake canvas:compile_assets
+
+# setup automated jobs
+ln -s $WEBROOT/script/canvas_init /etc/init.d/canvas_init
+update-rc.d canvas_init defaults
+
 # stop services
 /etc/init.d/mysql stop
 /etc/init.d/redis-server stop
