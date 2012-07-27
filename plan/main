@@ -1,3 +1,9 @@
 #include <turnkey/base>
 #include <turnkey/rails>
 
+ruby
+ruby-dev
+irb
+libhttpclient-ruby
+imagemagick
+
