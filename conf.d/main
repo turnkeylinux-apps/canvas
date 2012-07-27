@@ -84,6 +84,19 @@ production:
   ssl: true
 EOF
 
+# install and configure redis (squeeze backported deb)
+DEBIAN_FRONTEND=noninteractive dpkg -i $SRC/redis-server_*.deb
+rm $SRC/redis-server_*.deb
+
+cat >$WEBROOT/config/cache_store.yml<<EOF
+development:
+  cache_store: redis_store
+  servers:
+  - localhost
+  database: 0
+EOF
+
 # stop services
 /etc/init.d/mysql stop
+/etc/init.d/redis-server stop
 
