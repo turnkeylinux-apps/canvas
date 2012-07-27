@@ -101,6 +101,15 @@ for c in amazon_s3 delayed_jobs file_store security external_migration; do
     cp $WEBROOT/config/$c.yml.example $WEBROOT/config/$c.yml
 done
 
+# configure permissions
+mkdir -p $WEBROOT/tmp
+mkdir -p $WEBROOT/log
+chown -R root:www-data $WEBROOT
+chown -R www-data:www-data $WEBROOT/tmp
+chown -R www-data:www-data $WEBROOT/log
+chown www-data:www-data $WEBROOT/config/*.yml
+chmod 640 $WEBROOT/config/*.yml
+
 # stop services
 /etc/init.d/mysql stop
 /etc/init.d/redis-server stop
