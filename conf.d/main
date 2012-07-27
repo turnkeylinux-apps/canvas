@@ -110,6 +110,9 @@ chown -R www-data:www-data $WEBROOT/log
 chown www-data:www-data $WEBROOT/config/*.yml
 chmod 640 $WEBROOT/config/*.yml
 
+# temp hack: remove buggy migration
+rm $WEBROOT/db/migrate/20120709180215_add_attachment_indexes_for_sorting.rb
+
 # stop services
 /etc/init.d/mysql stop
 /etc/init.d/redis-server stop
