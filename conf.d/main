@@ -13,3 +13,8 @@ DB_USER=canvas
 DB_PASS=$(grep password: $WEBROOT/config/database.yml | head -n 1 | awk '{print $2}')
 rm -rf $WEBROOT
 
+# unpack into webroot
+tar -zxf $SRC/instructure-canvas-*.tar.gz -C $(dirname $WEBROOT)
+rm $SRC/instructure-canvas-*.tar.gz
+mv $(dirname $WEBROOT)/instructure-canvas-* $WEBROOT
+
