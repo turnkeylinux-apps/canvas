@@ -5,6 +5,7 @@ Option:
     --pass=     unless provided, will ask interactively
     --email=    unless provided, will ask interactively
     --domain=   unless provided, will ask interactively
+                DEFAULT=www.example.com
 """
 
 import sys
@@ -23,6 +24,8 @@ def usage(s=None):
     print >> sys.stderr, "Syntax: %s [options]" % sys.argv[0]
     print >> sys.stderr, __doc__
     sys.exit(1)
+
+DEFAULT_DOMAIN="www.example.com"
 
 def main():
     try:
@@ -66,7 +69,10 @@ def main():
         domain = d.get_input(
             "Canvas Domain",
             "Enter the domain to serve Canvas.",
-            "www.example.com")
+            DEFAULT_DOMAIN)
+
+    if domain == "DEFAULT":
+        domain = DEFAULT_DOMAIN
 
     salt = "".join(random.choice(string.letters) for line in range(20))
     hash = password + salt
