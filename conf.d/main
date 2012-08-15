@@ -128,9 +128,10 @@ bundle install
 RAILS_ENV=production bundle exec rake db:initial_setup
 bundle exec rake canvas:compile_assets
 
-# setup automated jobs
+# setup automated jobs (but disable by default)
 ln -s $WEBROOT/script/canvas_init /etc/init.d/canvas_init
 update-rc.d canvas_init defaults
+chmod -x $WEBROOT/script/canvas_init
 
 # stop services
 /etc/init.d/mysql stop

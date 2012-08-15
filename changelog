@@ -9,7 +9,7 @@ turnkey-canvas-12.0 (1) turnkey; urgency=low
     - Set Canvas admin password and email on firstboot (convenience, security).
     - Set Canvas domain to serve on first boot (convenience).
     - Pre-configured to use MySQL (recommended for production).
-    - Includes Canvas automated jobs daemon initscript.
+    - Includes Canvas automated jobs daemon initscript (disabled by default).
     - Includes Apache pre-configured with passenger support, with SSL support
       out of the box (performance, security).
 
