@@ -112,6 +112,7 @@ chown -R root:www-data $WEBROOT
 chown -R www-data:www-data $WEBROOT/tmp
 chown -R www-data:www-data $WEBROOT/log
 chown www-data:www-data $WEBROOT/config/*.yml
+chown www-data:www-data $WEBROOT/config/environment.rb
 chmod 640 $WEBROOT/config/*.yml
 
 # temp hack: remove buggy migration
@@ -128,10 +129,10 @@ bundle install
 RAILS_ENV=production bundle exec rake db:initial_setup
 bundle exec rake canvas:compile_assets
 
-# setup automated jobs (but disable by default)
+# setup automated jobs
+echo "/usr/local/lib/ruby/gems/1.8" > $WEBROOT/config/GEM_HOME
 ln -s $WEBROOT/script/canvas_init /etc/init.d/canvas_init
 update-rc.d canvas_init defaults
-chmod -x $WEBROOT/script/canvas_init
 
 # stop services
 /etc/init.d/mysql stop
