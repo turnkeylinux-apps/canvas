@@ -61,6 +61,8 @@ test:
   delivery_method: "test"
 
 development:
+  tls: false
+  enable_starttls_auto: false
   address: "localhost"
   port: "25"
   domain: "$DOMAIN"
@@ -68,6 +70,8 @@ development:
   default_name: "TurnKey Canvas"
 
 production:
+  tls: false
+  enable_starttls_auto: false
   address: "localhost"
   port: "25"
   domain: "$DOMAIN"
