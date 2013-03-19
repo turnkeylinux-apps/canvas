@@ -1,10 +1,12 @@
 #include <turnkey/base>
 #include <turnkey/rails>
 
-ruby
-ruby-dev
-irb
-libhttpclient-ruby
+/* canvas related (not in rails plan) */
+libyaml-dev
+libpq-dev
+libxmlsec1
+libxmlsec1-dev
+zlib1g-dev
 imagemagick
 
 /* nodejs related */
