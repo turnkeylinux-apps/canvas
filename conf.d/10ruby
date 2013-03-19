@@ -1,0 +1,21 @@
+#!/bin/bash -ex
+
+source /usr/local/src/canvas.conf
+
+# download
+URL="http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-${VERSION_RUBY}.tar.gz"
+download $URL $SRC
+
+# unpack and install
+tar -zxf $SRC/ruby-*.tar.gz -C $SRC
+cd $SRC/ruby-*
+./configure
+make
+make install
+
+# install gems
+[ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
+gem install psych
+gem install bundler
+unset HTTP_PROXY
+

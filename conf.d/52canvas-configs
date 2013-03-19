@@ -1,0 +1,75 @@
+#!/bin/bash -ex
+
+source /usr/local/src/canvas.conf
+
+# setup database config
+cat >$WEBROOT/config/database.yml<<EOF
+production:
+  adapter: mysql
+  encoding: utf8
+  host: localhost
+  database: $DB_NAME
+  username: $DB_USER
+  password: $DB_PASS
+  timeout: 5000
+  queue:
+    adapter: mysql
+    encoding: utf8
+    host: localhost
+    database: $DB_QUEUE
+    username: $DB_USER
+    password: $DB_PASS
+    timeout: 5000
+EOF
+
+# setup email config
+cat >$WEBROOT/config/outgoing_mail.yml<<EOF
+production:
+  tls: false
+  enable_starttls_auto: false
+  address: "localhost"
+  port: "25"
+  domain: "$DOMAIN"
+  outgoing_address: "$ADMIN_MAIL"
+  default_name: "TurnKey Canvas"
+EOF
+
+# setup domain config
+cat >$WEBROOT/config/domain.yml<<EOF
+production:
+  domain: "$DOMAIN"
+  ssl: true
+EOF
+
+# setup cache store config
+cat >$WEBROOT/config/cache_store.yml<<EOF
+production:
+  cache_store: redis_store
+EOF
+
+cat >$WEBROOT/config/redis.yml<<EOF
+production:
+  servers:
+  - redis://localhost
+EOF
+
+# copy example configurations
+CONFIGS="amazon_s3 delayed_jobs file_store security external_migration"
+for c in $CONFIGS; do
+    cp $WEBROOT/config/$c.yml.example $WEBROOT/config/$c.yml
+done
+
+# configure permissions
+mkdir -p $WEBROOT/log
+mkdir -p $WEBROOT/tmp/pids
+mkdir -p $WEBROOT/public/assets
+mkdir -p $WEBROOT/public/stylesheets/compiled
+chown -R root:www-data $WEBROOT
+chown -R www-data:www-data $WEBROOT/log
+chown -R www-data:www-data $WEBROOT/tmp
+chown -R www-data:www-data $WEBROOT/public/assets
+chown -R www-data:www-data $WEBROOT/public/stylesheets/compiled
+chown www-data:www-data $WEBROOT/config/*.yml
+chown www-data:www-data $WEBROOT/config/environment.rb
+chmod 640 $WEBROOT/config/*.yml
+
