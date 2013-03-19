@@ -7,3 +7,9 @@ irb
 libhttpclient-ruby
 imagemagick
 
+/* nodejs related */
+build-essential
+openssl
+libssl-dev
+pkg-config
+
