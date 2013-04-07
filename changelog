@@ -1,3 +1,33 @@
+turnkey-canvas-12.1 (1) turnkey; urgency=low
+
+  * Canvas:
+
+    - Upgraded to latest version of Canvas - cloned from upstream git repo 
+      as recommended providing an easy upgrade path.
+    - Fixed automated jobs daemon configuration and enabled (bugfix).
+    - Set outgoing mail defaults to tls, disable for local postfix (bugfix).
+    - Installing and pinning latest version of redis-server from backports.
+    - Upgraded ruby version (required in latest version).
+
+  * NodeJS related:
+
+    - Latest version of node will be installed at build time, with a source
+      symlink created at /usr/local/src/node.
+    - Node binaries added to path via symlinking in /usr/local/bin.
+    - Latest NPM module versions installed at build time.
+
+  * Hardcoded component versions:
+
+    canvas-lms          stable (git branch)
+    rubyenterprise      1.8.7-2012.02_i386_ubuntu10.04
+                        1.8.7-2012.02_amd64_debian6
+    ruby                1.9.3-p327
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Alon Swartz <alon@turnkeylinux.org>  Sun, 07 Apr 2013 08:00:00 +0200
+
 turnkey-canvas-12.0 (1) turnkey; urgency=low
 
   * Initial public release of TurnKey Canvas.
