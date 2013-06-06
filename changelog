@@ -16,7 +16,7 @@ turnkey-canvas-12.1 (1) turnkey; urgency=low
     - Node binaries added to path via symlinking in /usr/local/bin.
     - Latest NPM module versions installed at build time.
 
-  * Hardcoded component versions:
+  * Upstream source component versions:
 
     canvas-lms          stable (git branch)
     rubyenterprise      1.8.7-2012.02_i386_ubuntu10.04
