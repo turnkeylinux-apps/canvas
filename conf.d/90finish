@@ -1,7 +1,4 @@
 #!/bin/bash -ex
 
-source /usr/local/src/canvas.conf
-
-# cleanup
-rm -rf $SRC/*
+rm -f /usr/local/src/canvas.conf
 
