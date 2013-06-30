@@ -45,7 +45,7 @@ Credentials *(passwords set at first boot)*
 -------------------------------------------
 
 -  Webmin, SSH, MySQL: username **root**
--  Canvas: default username **admin@example.com**
+-  Canvas: default username is email set at first boot
 
 
 .. _Canvas: http://www.instructure.com/
