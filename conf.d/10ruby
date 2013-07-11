@@ -19,3 +19,5 @@ gem install psych
 gem install bundler
 unset HTTP_PROXY
 
+# cleanup
+rm -rf $SRC/ruby-*
