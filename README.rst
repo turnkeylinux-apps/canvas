@@ -14,8 +14,6 @@ and on top of that:
    
    - Installed from upstream git repo in /var/www/canvas providing an
      easy upgrade path.
-   - Installed and pinned Redis Server from Squeeze backports as
-     required.
    - Pre-configured to use MySQL (recommended for production).
    - Includes Canvas automated jobs daemon initscript.
    - Includes Apache pre-configured with passenger support, with SSL
