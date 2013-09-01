@@ -27,18 +27,6 @@ and on top of that:
   password recovery).
 - Webmin modules for configuring Apache2, MySQL and Postfix.
 
-Known issues
-------------
-
-- \*\* NodeJS inadvertently removed during build cleanup::
-
-    cd /usr/local/src
-    # download the latest linux binary for your architecture, eg.
-    wget http://nodejs.org/dist/latest/node-v0.10.10-linux-x64.tar.gz
-    tar -zxf node-v*.tar.gz
-    rm node-v*.tar.gz
-    ln -s node-v* node
-
 Credentials *(passwords set at first boot)*
 -------------------------------------------
 
