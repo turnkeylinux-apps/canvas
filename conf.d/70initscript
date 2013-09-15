@@ -3,7 +3,7 @@
 source /usr/local/src/canvas.conf
 
 # setup automated jobs
-echo "/usr/local/lib/ruby/gems/1.9.1" > $WEBROOT/config/GEM_HOME
+echo "/var/lib/gems/1.9.1" > $WEBROOT/config/GEM_HOME
 ln -s $WEBROOT/script/canvas_init /etc/init.d/canvas_init
 update-rc.d canvas_init defaults
 
