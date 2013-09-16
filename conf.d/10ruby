@@ -6,5 +6,6 @@ source /usr/local/src/canvas.conf
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
 gem install psych
 gem install bundler
+gem install activesupport -v "$VERSION_ACTIVESUPPORT"
 unset HTTP_PROXY
 
