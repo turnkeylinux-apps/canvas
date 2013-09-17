@@ -2,6 +2,9 @@
 
 source /usr/local/src/canvas.conf
 
+# bugfix
+sed -i "/index_groups_on_wiki_id/ s/^/#/" $WEBROOT/db/migrate/20101210192618_init_canvas_db.rb
+
 # preset answers for automated install
 export CANVAS_LMS_ADMIN_EMAIL=$ADMIN_MAIL
 export CANVAS_LMS_ADMIN_PASSWORD=$ADMIN_PASS
@@ -9,6 +12,8 @@ export CANVAS_LMS_ACCOUNT_NAME="TurnKey Canvas"
 export CANVAS_LMS_STATS_COLLECTION="opt-out"
 
 # install canvas, populate database and compile assets
+/etc/init.d/redis-server start
+
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
 
 cd $WEBROOT
