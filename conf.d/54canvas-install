@@ -12,6 +12,7 @@ export CANVAS_LMS_STATS_COLLECTION="opt-out"
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
 
 cd $WEBROOT
+bundle install --path vendor/bundle --without sqlite postgres || \
 bundle install --path vendor/bundle --without sqlite postgres
 RAILS_ENV=production bundle exec rake db:initial_setup
 bundle exec rake canvas:compile_assets
