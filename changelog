@@ -1,12 +1,26 @@
 turnkey-canvas-13.0 (1) turnkey; urgency=low
 
-  * Please refer to turnkey-core's changelog for changes common to all
-    appliances, as well as the following git logs:
-    
-    - https://github.com/turnkeylinux/common
-    - https://github.com/turnkeylinux-apps/canvas
+  * Canvas:
 
- -- Alon Swartz <alon@turnkeylinux.org>  Tue, 06 Aug 2013 15:37:33 +0300
+    - Changed database adapter to mysql2 (recommended for ruby 1.9)
+    - Replaced ruby-enterprise with stock ruby from Debian [#102].
+    - Redis installed from Debian archive (backport no longer needed).
+
+  * Build related changes:
+
+    - Bugfix: don't delete /usr/local/src/node*
+    - Install activesupport 2.3.18 and rerun bundle install on failure [#109].
+    - Comment out problematic migration [#110].
+    - Bugfixes for package transitions [#58, #59].
+
+  * Upstream source component versions:
+
+    canvas-lms          stable (git branch)
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Alon Swartz <alon@turnkeylinux.org>  Thu, 10 Oct 2013 17:05:35 +0300
 
 turnkey-canvas-12.1 (1) turnkey; urgency=low
 

@@ -18,7 +18,7 @@ and on top of that:
    - Includes Canvas automated jobs daemon initscript.
    - Includes Apache pre-configured with passenger support, with SSL
      support out of the box (performance, security).
-   - Includes NodeJS required for compiling assets \*\*.
+   - Includes NodeJS required for compiling assets.
 
 - SSL support out of the box.
 - Postfix MTA (bound to localhost) to allow sending of email (e.g.,
