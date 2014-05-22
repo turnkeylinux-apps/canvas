@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 # required environment variables: CODENAME
- -
+
 fatal() {
     echo "[$(basename $0)] fatal: $@" 1>&2
     exit 1
