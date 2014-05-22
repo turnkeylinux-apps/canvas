@@ -12,7 +12,7 @@ PACKAGES="redis-server"
 [ "$CODENAME" == "wheezy" ] || fatal "CODENAME is not wheezy"
 
 cat >/etc/apt/sources.list.d/$NAME.list<<EOF
-deb http://cdn.debian.org/debian $NAME main
+deb http://cdn.debian.net/debian $NAME main
 EOF
 
 cat >/etc/apt/preferences.d/$NAME<<EOF
