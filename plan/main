@@ -8,7 +8,6 @@ libxmlsec1
 libxmlsec1-dev
 zlib1g-dev
 imagemagick
-redis-server
 
 /* nodejs related */
 build-essential
