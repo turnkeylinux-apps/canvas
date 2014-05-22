@@ -6,10 +6,10 @@ fatal() {
     exit 1
 }
 
-NAME="squeeze-backports"
+NAME="wheezy-backports"
 PACKAGES="redis-server"
 
-[ "$CODENAME" == "squeeze" ] || fatal "CODENAME is not squeeze"
+[ "$CODENAME" == "wheezy" ] || fatal "CODENAME is not wheezy"
 
 cat >/etc/apt/sources.list.d/$NAME.list<<EOF
 deb http://backports.debian.org/debian-backports $NAME main
