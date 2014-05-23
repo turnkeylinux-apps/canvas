@@ -62,6 +62,8 @@ done
 # configure permissions
 mkdir -p $WEBROOT/log
 mkdir -p $WEBROOT/tmp/pids
+mkdir -p $WEBROOT/tmp/files
+mkdir -p $WEBROOT/tmp/attachment_fu
 mkdir -p $WEBROOT/public/assets
 mkdir -p $WEBROOT/public/stylesheets/compiled
 chown -R root:www-data $WEBROOT
