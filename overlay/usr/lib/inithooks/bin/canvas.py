@@ -10,6 +10,7 @@ Option:
 
 import sys
 import getopt
+import inithooks_cache
 import hashlib
 import random
 import string
@@ -61,6 +62,8 @@ def main():
             "Canvas Email",
             "Enter email address for the Canvas 'admin' account.",
             "admin@example.com")
+
+    inithooks_cache.write('APP_EMAIL', email)
 
     if not domain:
         if 'd' not in locals():
