@@ -4,8 +4,9 @@ source /usr/local/src/canvas.conf
 
 # install gems
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
-gem install psych
-gem install bundler
-gem install activesupport -v "$VERSION_ACTIVESUPPORT"
+gem install --no-ri --no-rdoc psych
+gem install --no-ri --no-rdoc bundler -v 1.10.5
+gem uninstall --force bundler -v '>1.10.5'
+gem install --no-ri --no-rdoc activesupport -v "$VERSION_ACTIVESUPPORT"
 unset HTTP_PROXY
 
