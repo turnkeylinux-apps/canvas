@@ -10,6 +10,7 @@ zlib1g-dev
 imagemagick
 redis-server
 libsqlite3-dev
+python-psycopg2
 
 npm
 

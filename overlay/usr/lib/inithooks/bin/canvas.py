@@ -13,9 +13,9 @@ import getopt
 import hashlib
 import random
 import string
+import psycopg2
 
 from dialog_wrapper import Dialog
-from mysqlconf import MySQL
 from executil import system
 
 def usage(s=None):
@@ -81,10 +81,17 @@ def main():
 
     access_token = "".join(random.choice(string.letters) for line in range(20))
 
-    m = MySQL()
-    m.execute('UPDATE canvas_production.users SET name=\"%s\", sortable_name=\"%s\" WHERE id=1;' % (email, email))
-    m.execute('UPDATE canvas_production.pseudonyms SET unique_id=\"%s\", crypted_password=\"%s\", password_salt=\"%s\", single_access_token=\"%s\" WHERE user_id=1;' % (email, hash, salt, access_token))
-    m.execute('UPDATE canvas_production.communication_channels SET path=\"%s\" WHERE id=1;' % email)
+    conn = psycopg2.connect("dbname=canvas_production user=root")
+
+    c = conn.cursor()
+
+    c.execute('UPDATE users SET name=%s, sortable_name=%s WHERE id=1;', (email, email))
+    c.execute('UPDATE pseudonyms SET unique_id=%s, crypted_password=%s, password_salt=%s, single_access_token=%s WHERE user_id=1;', (email, hash, salt, access_token))
+    c.execute('UPDATE communication_channels SET path=%s WHERE id=1;', (email, ))
+
+    conn.commit()
+    c.close()
+    conn.close()
 
     config = "/var/www/canvas/config/domain.yml"
     system("sed -i \"s|domain:.*|domain: \\\"%s\\\"|\" %s" % (domain, config))
