@@ -5,7 +5,7 @@ source /usr/local/src/canvas.conf
 # setup database config
 cat >$WEBROOT/config/database.yml<<EOF
 production:
-  adapter: mysql2
+  adapter: postgresql
   encoding: utf8
   host: localhost
   database: $DB_NAME
@@ -13,7 +13,7 @@ production:
   password: $DB_PASS
   timeout: 5000
   queue:
-    adapter: mysql2
+    adapter: postgresql
     encoding: utf8
     host: localhost
     database: $DB_QUEUE
