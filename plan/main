@@ -1,5 +1,5 @@
 #include <turnkey/base>
-#include <turnkey/rails>
+#include <turnkey/rails-pgsql>
 
 /* canvas related (not in rails plan) */
 libyaml-dev
@@ -8,10 +8,8 @@ libxmlsec1
 libxmlsec1-dev
 zlib1g-dev
 imagemagick
+redis-server
+libsqlite3-dev
 
-/* nodejs related */
-build-essential
-openssl
-libssl-dev
-pkg-config
+npm
 
