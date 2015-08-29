@@ -59,6 +59,18 @@ for c in $CONFIGS; do
     cp $WEBROOT/config/$c.yml.example $WEBROOT/config/$c.yml
 done
 
+# start up faster!
+cat << EOF >> /etc/apache2/conf/canvas.conf
+
+PassengerSpawnMethod smart
+PassengerMaxPreloaderIdleTime 0
+
+PassengerPreStart http://localhost/
+PassengerPreStart https://localhost/
+
+PassengerMinInstances 3
+EOF
+
 # configure permissions
 mkdir -p $WEBROOT/log
 mkdir -p $WEBROOT/tmp/pids
@@ -66,11 +78,10 @@ mkdir -p $WEBROOT/tmp/files
 mkdir -p $WEBROOT/tmp/attachment_fu
 mkdir -p $WEBROOT/public/assets
 mkdir -p $WEBROOT/public/stylesheets/compiled
+
 chown -R root:www-data $WEBROOT
 chown -R www-data:www-data $WEBROOT/log
 chown -R www-data:www-data $WEBROOT/tmp
-chown -R www-data:www-data $WEBROOT/public/assets
-chown -R www-data:www-data $WEBROOT/public/stylesheets/compiled
 chown www-data:www-data $WEBROOT/config/*.yml
 chown www-data:www-data $WEBROOT/config/environment.rb
 chmod 640 $WEBROOT/config/*.yml
