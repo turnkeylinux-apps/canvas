@@ -12,15 +12,25 @@ export CANVAS_LMS_ACCOUNT_NAME="TurnKey Canvas"
 export CANVAS_LMS_STATS_COLLECTION="opt-out"
 
 # install canvas, populate database and compile assets
-/etc/init.d/redis-server start
+service redis-server start
 
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
 
 cd $WEBROOT
-bundle install --path vendor/bundle --without sqlite postgres || \
-bundle install --path vendor/bundle --without sqlite postgres
+
+RAILS_ENV=production bundle install --path vendor/bundle --without mysql sqlite
+npm install --unsafe-perm
+
 RAILS_ENV=production bundle exec rake db:initial_setup
-bundle exec rake canvas:compile_assets
+
+cd gems/canvas_i18nliner/
+npm install --unsafe-perm
+cd -
+
+mkdir -p log tmp/pids public/assets public/stylesheets/compiled
+touch Gemfile.lock
+
+LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 RAILS_ENV=production bundle _1.10.5_ exec rake canvas:compile_assets
 
 unset HTTP_PROXY
 
@@ -28,6 +38,5 @@ unset HTTP_PROXY
 rm -f $WEBROOT/log/*
 
 # stop services
-/etc/init.d/mysql stop
-/etc/init.d/redis-server stop
+service redis-server stop
 
