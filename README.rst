@@ -14,18 +14,17 @@ and on top of that:
    
    - Installed from upstream git repo in /var/www/canvas providing an
      easy upgrade path.
-   - Installed and pinned Redis Server from Wheezy backports as 
-     required.
-   - Pre-configured to use MySQL (recommended for production).
+   - Installed Redis Server from Jessie repos.
+   - Pre-configured to use PostgreSQL (recommended for production).
    - Includes Canvas automated jobs daemon initscript.
-   - Includes Apache pre-configured with passenger support, with SSL
+   - Includes Apache pre-configured with Passenger support, with SSL
      support out of the box (performance, security).
-   - Includes NodeJS required for compiling assets.
+   - Includes NodeJS and NPM required for compiling assets.
 
 - SSL support out of the box.
 - Postfix MTA (bound to localhost) to allow sending of email (e.g.,
   password recovery).
-- Webmin modules for configuring Apache2, MySQL and Postfix.
+- Webmin modules for configuring Apache2, PostgreSQL and Postfix.
 
 Credentials *(passwords set at first boot)*
 -------------------------------------------
