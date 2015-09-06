@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+WEBROOT=/var/www/canvas
+
 chown -R www-data:www-data $WEBROOT/public
 
 rm -f /usr/local/src/canvas.conf
