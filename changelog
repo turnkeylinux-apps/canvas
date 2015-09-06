@@ -1,3 +1,18 @@
+turnkey-canvas-14.0 (1) turnkey; urgency=low
+
+  * Canvas:
+
+    - Changed database adapter to postgresql (support for MySQL dropped).
+
+  * Upstream source component versions:
+
+    canvas-lms          stable (git branch)
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Anton Pyrogovskyi <anton@turnkeylinux.org>  Sun, 6 Sep 2015 13:15:27 +0300
+
 turnkey-canvas-13.0 (1) turnkey; urgency=low
 
   * Canvas:
