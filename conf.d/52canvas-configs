@@ -70,14 +70,14 @@ PassengerPreStart https://localhost/
 
 PassengerMinInstances 3
 
-PassengerDefaultUser canvas
+PassengerDefaultUser canvasuser
 EOF
 
-adduser --disabled-password --no-create-home --gecos "Canvas user" canvas
-adduser canvas www-data
+adduser --disabled-password --no-create-home --gecos "Canvas user" canvasuser
+adduser canvasuser www-data
 
 WEBROOT=/var/www/canvas
-USER=canvas:www-data
+USER=canvasuser:www-data
 
 # configure permissions
 mkdir -p $WEBROOT/log
