@@ -69,7 +69,15 @@ PassengerPreStart http://localhost/
 PassengerPreStart https://localhost/
 
 PassengerMinInstances 3
+
+PassengerDefaultUser canvasuser
 EOF
+
+adduser --disabled-password --no-create-home --gecos "Canvas user" canvasuser
+adduser canvasuser www-data
+
+WEBROOT=/var/www/canvas
+USER=canvasuser:www-data
 
 # configure permissions
 mkdir -p $WEBROOT/log
@@ -80,9 +88,9 @@ mkdir -p $WEBROOT/public/assets
 mkdir -p $WEBROOT/public/stylesheets/compiled
 
 chown -R root:www-data $WEBROOT
-chown -R www-data:www-data $WEBROOT/log
-chown -R www-data:www-data $WEBROOT/tmp
-chown www-data:www-data $WEBROOT/config/*.yml
-chown www-data:www-data $WEBROOT/config/environment.rb
+chown -R $USER $WEBROOT/log
+chown -R $USER $WEBROOT/tmp
+chown $USER $WEBROOT/config/*.yml
+chown $USER $WEBROOT/config/environment.rb
 chmod 640 $WEBROOT/config/*.yml
 
