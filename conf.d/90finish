@@ -2,7 +2,7 @@
 
 WEBROOT=/var/www/canvas
 
-chown -R canvas:www-data $WEBROOT/public
+chown -R canvasuser:www-data $WEBROOT/public
 
 rm -f /usr/local/src/canvas.conf
 
