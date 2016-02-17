@@ -6,3 +6,4 @@
 [ -e $INITHOOKS_CONF ] && . $INITHOOKS_CONF
 $INITHOOKS_PATH/bin/canvas.py --pass="$APP_PASS" --email="$APP_EMAIL" --domain="$APP_DOMAIN"
 
+service canvas_init restart
