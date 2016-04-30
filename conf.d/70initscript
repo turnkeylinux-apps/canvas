@@ -5,5 +5,6 @@ source /usr/local/src/canvas.conf
 # setup automated jobs
 echo "/var/lib/gems/2.1.5" > $WEBROOT/config/GEM_HOME
 ln -s $WEBROOT/script/canvas_init /etc/init.d/canvas_init
+sed -i '/exec su/ s#$# -s /bin/bash#' $WEBROOT/script/canvas_init
 update-rc.d canvas_init defaults
 

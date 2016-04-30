@@ -91,11 +91,8 @@ PassengerMinInstances 3
 PassengerDefaultUser canvasuser
 EOF
 
-adduser --disabled-password --no-create-home --gecos "Canvas user" canvasuser
-adduser canvasuser www-data
-
 WEBROOT=/var/www/canvas
-USER=canvasuser:www-data
+USER=www-data:www-data
 
 # configure permissions
 mkdir -p $WEBROOT/log
