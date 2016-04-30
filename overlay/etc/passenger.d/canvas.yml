@@ -1,0 +1,11 @@
+cwd: /var/www/canvas
+user: www-data
+port: 80
+environment: production
+max-pool-size: 4
+min-instances: 1
+pid-file: /var/www/canvas/tmp/pids/passenger.pid
+ssl: true
+ssl-port: 443
+ssl-certificate: /etc/ssl/private/cert.pem
+ssl-certificate-key: /etc/ssl/private/cert.key
