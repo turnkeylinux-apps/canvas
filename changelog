@@ -1,3 +1,15 @@
+turnkey-canvas-14.2 (1) turnkey; urgency=low
+
+  * Canvas:
+
+    - Responsiveness when running on AWS is improved [#583].
+    - Now deployed on Passenger Standalone instead of Apache.
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Anton Pyrogovskyi <anton@turnkeylinux.org>  Mon, 02 May 2016 18:44:51 +0200
+
 turnkey-canvas-14.1 (1) turnkey; urgency=low
 
   * Canvas:

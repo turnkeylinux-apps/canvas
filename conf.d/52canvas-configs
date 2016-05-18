@@ -53,31 +53,32 @@ production:
   - redis://localhost
 EOF
 
+cat >$WEBROOT/config/delayed_jobs.yml<<EOF
+production:
+  workers:
+  - queue: canvas_queue
+    workers: 2
+    max_priority: 10
+  - queue: canvas_queue
+    workers: 2
+
+  max_run_time: 28800
+  worker_max_job_count: 20
+  worker_max_memory_usage: 536870912
+
+default:
+  workers:
+  - queue: canvas_queue
+EOF
+
 # copy example configurations
-CONFIGS="amazon_s3 delayed_jobs file_store security external_migration"
+CONFIGS="amazon_s3 file_store security external_migration"
 for c in $CONFIGS; do
     cp $WEBROOT/config/$c.yml.example $WEBROOT/config/$c.yml
 done
 
-# start up faster!
-cat << EOF >> /etc/apache2/conf/canvas.conf
-
-PassengerSpawnMethod smart
-PassengerMaxPreloaderIdleTime 0
-
-PassengerPreStart http://localhost/
-PassengerPreStart https://localhost/
-
-PassengerMinInstances 3
-
-PassengerDefaultUser canvasuser
-EOF
-
-adduser --disabled-password --no-create-home --gecos "Canvas user" canvasuser
-adduser canvasuser www-data
-
 WEBROOT=/var/www/canvas
-USER=canvasuser:www-data
+USER=www-data:www-data
 
 # configure permissions
 mkdir -p $WEBROOT/log

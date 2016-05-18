@@ -2,9 +2,6 @@
 
 source /usr/local/src/canvas.conf
 
-# bugfix
-sed -i "/index_groups_on_wiki_id/ s/^/#/" $WEBROOT/db/migrate/20101210192618_init_canvas_db.rb
-
 # preset answers for automated install
 export CANVAS_LMS_ADMIN_EMAIL=$ADMIN_MAIL
 export CANVAS_LMS_ADMIN_PASSWORD=$ADMIN_PASS

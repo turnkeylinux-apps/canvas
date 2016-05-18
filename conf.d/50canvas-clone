@@ -10,7 +10,7 @@ git clone $URL $WEBROOT --depth=1
 unset HTTP_PROXY
 
 cd $WEBROOT
-git branch --set-upstream $VERSION_CANVAS origin/$VERSION_CANVAS
+git branch --set-upstream-to=origin/$VERSION_CANVAS $VERSION_CANVAS
 
 # tweak footer
 CONF=$WEBROOT/app/views/layouts/application.html.erb
