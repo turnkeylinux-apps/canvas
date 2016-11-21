@@ -3,4 +3,4 @@
 source /usr/local/src/canvas.conf
 
 ln -s /usr/bin/nodejs /usr/bin/node
-n 0.12.7
+n lts
