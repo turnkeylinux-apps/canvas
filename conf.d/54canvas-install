@@ -27,7 +27,7 @@ cd -
 mkdir -p log tmp/pids public/assets public/stylesheets/compiled
 touch Gemfile.lock
 
-LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 RAILS_ENV=production bundle _1.10.5_ exec rake canvas:compile_assets
+CANVAS_BUILD_CONCURRENCY=1 LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 RAILS_ENV=production bundle _1.10.5_ exec rake canvas:compile_assets
 
 unset HTTP_PROXY
 
