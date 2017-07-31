@@ -2,11 +2,13 @@
 
 source /usr/local/src/canvas.conf
 
+GEMOPTS='--no-ri --no-rdoc'
+
 # install gems
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
-gem install --no-ri --no-rdoc psych
-gem install --no-ri --no-rdoc bundler -v 1.10.5
-gem uninstall --force bundler -v '>1.10.5'
-gem install --no-ri --no-rdoc activesupport -v "$VERSION_ACTIVESUPPORT"
+gem install $GEMOPTS psych
+gem install --no-ri --no-rdoc bundler -v 1.14.6
+gem uninstall --force bundler -v '>1.14.6'
+gem install $GEMOPTS activesupport
 unset HTTP_PROXY
 
