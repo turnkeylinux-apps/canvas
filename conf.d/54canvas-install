@@ -24,8 +24,8 @@ cd gems/canvas_i18nliner/
 npm install --unsafe-perm
 cd -
 
-mkdir -p log tmp/pids public/assets public/stylesheets/compiled
-touch Gemfile.lock
+mkdir -p log tmp/pids public/assets 
+
 
 # stop services
 service postgresql stop
