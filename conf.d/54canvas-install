@@ -16,7 +16,9 @@ service redis-server start
 cd $WEBROOT
 
 RAILS_ENV=production bundle install --path vendor/bundle --without mysql sqlite
-npm install --unsafe-perm
+yarn install
+
+CANVAS_BUILD_CONCURRENCY=1 JS_BUILD_NO_UGLIFY=true LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 RAILS_ENV=production bundle exec rake canvas:compile_assets
 
 RAILS_ENV=production bundle exec rake db:initial_setup
 
@@ -30,8 +32,6 @@ mkdir -p log tmp/pids public/assets
 # stop services
 service postgresql stop
 service redis-server stop
-
-CANVAS_BUILD_CONCURRENCY=1 LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 RAILS_ENV=production bundle exec rake canvas:compile_assets
 
 unset HTTP_PROXY
 
