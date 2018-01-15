@@ -11,5 +11,3 @@ imagemagick
 redis-server
 libsqlite3-dev
 python-psycopg2
-python3-software-properties
-python3-pygments

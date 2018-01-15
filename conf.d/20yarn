@@ -6,4 +6,4 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/
 
 apt-get -y install apt-transport-https
 apt-get -y update
-apt-get install --allow-downgrades -y yarn=0.27.5-1
+apt-get install -y yarn
