@@ -6,9 +6,10 @@ GEMOPTS='--no-ri --no-rdoc'
 
 # install gems
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
+
+gem install $GEMOPTS bundler -v '1.16.0' --force
+gem uninstall bundler -v '>1.16.0' -aIx
 gem install $GEMOPTS psych
-gem install --no-ri --no-rdoc bundler -v 1.14.6
-gem uninstall --force bundler -v '>1.14.6'
 gem install $GEMOPTS activesupport
 unset HTTP_PROXY
 

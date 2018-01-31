@@ -1,3 +1,16 @@
+turnkey-canvas-15.0 (1) turnkey; urgency=low
+
+  * Install Adminer directly from stretch/main repo
+  
+  * Update yarn version to latest
+  
+  * Change Node.js version to 6.12.2
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+  
+ -- Zhenya Hvorostian <zhenya@turnkeylinux.org> Wed, Jan 2018 21:33:10 +0300
+
 turnkey-canvas-14.2 (1) turnkey; urgency=low
 
   * Latest version of Canvas installed.
