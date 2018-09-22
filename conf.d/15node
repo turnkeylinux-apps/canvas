@@ -3,5 +3,5 @@
 source /usr/local/src/canvas.conf
 
 ln -s /usr/bin/nodejs /usr/bin/node
-n 6.12.2
+n 8.12.0
 npm install node-gyp-install && ./node_modules/node-gyp-install/bin.js
