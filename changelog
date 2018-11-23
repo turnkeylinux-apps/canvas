@@ -3,11 +3,13 @@ turnkey-canvas-15.1 (1) turnkey; urgency=low
   * Install latest Canvas LTS stable from upstream git repo.
   
   * Update yarn version to 1.10.1.
+
+  * Secure yarn apt repo.
   
   * Note: Please refer to turnkey-core's changelog for changes common to all
     appliances. Here we only describe changes specific to this appliance.
   
- -- Zhenya Hvorostian <zhenya@turnkeylinux.org> Fri, 23 Nov 2018 11:48:21 +0300
+ -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Fri, 23 Nov 2018 11:48:21 +0300
 
 turnkey-canvas-15.0 (1) turnkey; urgency=low
 
