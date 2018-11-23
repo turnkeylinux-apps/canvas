@@ -8,6 +8,7 @@ GEMOPTS='--no-ri --no-rdoc'
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
 
 gem install $GEMOPTS bundler -v '1.16.0' --force
+rm /usr/local/rbenv/versions/2.4.5/lib/ruby/gems/2.4.0/specifications/default/bundler*.gemspec
 gem uninstall bundler -v '>1.16.0' -aIx
 gem install $GEMOPTS psych
 gem install $GEMOPTS activesupport
