@@ -2,7 +2,7 @@
 
 source /usr/local/src/canvas.conf
 
-GEMOPTS='--no-ri --no-rdoc'
+GEMOPTS='--no-document'
 
 # install gems
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
