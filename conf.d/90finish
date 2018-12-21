@@ -2,6 +2,10 @@
 
 WEBROOT=/var/www/canvas
 
+# create convenience symlink for logs
+rm -rf /var/log/canvas
+ln -s $WEBROOT/log /var/log/canvas
+
 chown -R www-data:www-data $WEBROOT/public
 # fix for github.com/phusion/passenger/wiki/Debugging-application-startup-problems
 echo "PassengerStartTimeout 300" >> /etc/apache2/mods-available/passenger.conf

@@ -1,3 +1,11 @@
+turnkey-canvas-15.2 (1) turnkey; urgency=low
+
+  * Install latest Canvas LTS stable from upstream git repo.
+
+  * Include Canvas logrotate.d script - closes #1279.
+
+ -- root <zhenya@turnkeylinux.org>  Fri, 21 Dec 2018 16:07:44 +1100
+
 turnkey-canvas-15.1 (1) turnkey; urgency=low
 
   * Install latest Canvas LTS stable from upstream git repo.
