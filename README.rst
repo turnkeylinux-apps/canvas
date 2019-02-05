@@ -14,7 +14,12 @@ and on top of that:
    
    - Installed from upstream git repo in /var/www/canvas providing an
      easy upgrade path.
-   - Installed Redis Server from Jessie repos.
+
+     **Security note**: Updates to Canvas may require supervision so
+     they **ARE NOT** configured to install automatically. See `Canvas
+     documentation`_ for upgrade instructions.
+
+   - Installed Redis Server from Stretch repos.
    - Pre-configured to use PostgreSQL (recommended for production).
    - Includes Canvas automated jobs daemon initscript.
    - Includes Apache pre-configured with Passenger support, with SSL
@@ -29,9 +34,10 @@ and on top of that:
 Credentials *(passwords set at first boot)*
 -------------------------------------------
 
-- Webmin, SSH, MySQL: username **root**
+- Webmin, SSH: username **root**
 - Canvas: default username is email set at first boot
 
 
-.. _Canvas: http://www.instructure.com/
+.. _Canvas: https://www.instructure.com/
 .. _TurnKey Core: https://www.turnkeylinux.org/core
+.. _Canvas documentation: https://github.com/instructure/canvas-lms/wiki/Upgrading#canvas-upgrade
