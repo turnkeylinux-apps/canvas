@@ -16,7 +16,7 @@ KEY=$(mcookie)$(mcookie)$(mcookie)
 
 
 sed -i "s|ECOSYSTEM_KEY=.*|ECOSYSTEM_KEY=\"$KEY\"|" $ENV_FILE 
-sed -i "s|ECOSYSTEM=SECRET=.*|ECOSYSTEM_SECRET=\"$SECRET\"|" $ENV_FILE
+sed -i "s|ECOSYSTEM_SECRET=.*|ECOSYSTEM_SECRET=\"$SECRET\"|" $ENV_FILE
 sed -i "s|CIPHER_PASSWORD=.*"|CIPHER_PASSWORD=\"$(mcookie)\"|" $ENV_FILE
 sed -i "s|signing-secret: .*|signing-secret: "$KEY"|" $DYNAMIC_SETTINGS
 sed -i "s|encryption-secret: .*|encryption-secret: "$SECRET"|" $DYNAMIC_SETTINGS
