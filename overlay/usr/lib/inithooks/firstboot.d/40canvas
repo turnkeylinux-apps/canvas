@@ -6,6 +6,21 @@
 [ -e $INITHOOKS_CONF ] && . $INITHOOKS_CONF
 $INITHOOKS_PATH/bin/canvas.py --pass="$APP_PASS" --email="$APP_EMAIL" --domain="$APP_DOMAIN"
 
+# Canvas Rich Content Editor API keys
+ENV_FILE=/var/www/canvas-rce-api/.env
+DYNAMIC_SETTINGS=/var/www/canvas/config/dynamic_settings.yml
+
+SECRET=$(mcookie)$(mcookie)$(mcookie)
+KEY=$(mcookie)$(mcookie)$(mcookie)
+
+
+
+sed -i "s|ECOSYSTEM_KEY=.*|ECOSYSTEM_KEY=\"$KEY\"|" $ENV_FILE 
+sed -i "s|ECOSYSTEM=SECRET=.*|ECOSYSTEM_SECRET=\"$SECRET\"|" $ENV_FILE
+sed -i "s|CIPHER_PASSWORD=.*"|CIPHER_PASSWORD=\"$(mcookie)\"|" $ENV_FILE
+sed -i "s|signing-secret: .*|signing-secret: "$KEY"|" $DYNAMIC_SETTINGS
+sed -i "s|encryption-secret: .*|encryption-secret: "$SECRET"|" $DYNAMIC_SETTINGS
+
 service canvas_init restart
 
 service passenger restart

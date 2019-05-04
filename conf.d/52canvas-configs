@@ -71,6 +71,18 @@ default:
   - queue: canvas_queue
 EOF
 
+# Canvas Rich Content Editor API
+cat >$WEBROOT/config/dynamic_settings.yml<<EOF
+production:
+  config:
+    canvas:
+      canvas:
+        encryption-secret: "turnkey1"
+        signing-secret: "turnkey1"
+      rich-content-service:
+        app-host: "canvas-rce-api-host"
+EOF
+
 # copy example configurations
 CONFIGS="amazon_s3 file_store security external_migration"
 for c in $CONFIGS; do
