@@ -7,6 +7,6 @@ cp .env.example .env
 
 
 sed -i "s|^PORT=.*|PORT=3000|" .env
-sed -i "s|NODE_ENV=.*|NODE_ENV=production" .env
+sed -i "s|NODE_ENV=.*|NODE_ENV=production|" .env
 
 a2ensite canvas-rce-api
