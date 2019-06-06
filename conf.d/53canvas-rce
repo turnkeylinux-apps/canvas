@@ -1,0 +1,12 @@
+git clone --depth=1 https://github.com/instructure/canvas-rce-api.git /var/www/canvas-rce-api
+
+cd /var/www/canvas-rce-api
+
+npm i --production
+cp .env.example .env
+
+
+sed -i "s|^PORT=.*|PORT=3000|" .env
+sed -i "s|NODE_ENV=.*|NODE_ENV=production|" .env
+
+a2ensite canvas-rce-api

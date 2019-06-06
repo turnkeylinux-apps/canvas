@@ -10,7 +10,6 @@ export CANVAS_LMS_STATS_COLLECTION="opt-out"
 
 # install canvas, populate database and compile assets
 service redis-server start
-
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
 
 cd $WEBROOT
