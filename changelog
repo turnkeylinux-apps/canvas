@@ -2,10 +2,11 @@ turnkey-canvas-15.3 (1) turnkey; urgency=low
 
   * Install latest Canvas LTS stable from upstream git repo.
 
-  * Include Canvas RCE API service run with Passenger.
+  * Include Canvas RCE API service run with Passenger - closes #1319.
 
- -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Sun, 05 May 2019 18:38:42 +0300
+  * Update included NodeJS to 10.x (10.15.3).
 
+ -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Thu, 06 June 2019 18:38:42 +0300
 
 turnkey-canvas-15.2 (1) turnkey; urgency=low
 
