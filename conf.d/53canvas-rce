@@ -19,7 +19,7 @@ cd /var/www/canvas-rce-api
 
 npm i --production
 cp .env.example .env
-
+echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> .env
 
 sed -i "s|^PORT=.*|PORT=3000|" .env
 sed -i "s|NODE_ENV=.*|NODE_ENV=production|" .env
