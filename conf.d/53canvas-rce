@@ -1,3 +1,18 @@
+cat >>/etc/apache2/sites-available/canvas.conf<<EOF
+Listen 3000
+<VirtualHost *:3000>
+  ServerName localhost
+  ServerAlias localhost 
+
+  SSLEngine on
+  SSLCertificateKeyFile /etc/ssl/private/cert.key
+  SSLCertificateFile /etc/ssl/private/cert.pem
+  PassengerAppRoot /var/www/canvas-rce-api
+  PassengerAppType node
+  PassengerStartupFile app.js
+</VirtualHost>
+EOF
+
 git clone --depth=1 https://github.com/instructure/canvas-rce-api.git /var/www/canvas-rce-api
 
 cd /var/www/canvas-rce-api
