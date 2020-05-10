@@ -16,12 +16,12 @@ EOF
 git clone --depth=1 https://github.com/instructure/canvas-rce-api.git /var/www/canvas-rce-api
 
 cd /var/www/canvas-rce-api
+CONFIG=/var/www/canvas/config/dynamic_settings.yml
 
 npm i --production
 cp .env.example .env
-echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> .env
 
 sed -i "s|^PORT=.*|PORT=3000|" .env
 sed -i "s|NODE_ENV=.*|NODE_ENV=production|" .env
+sed -i "s|canvas-rce-api-host|localhost|" $CONFIG
 
-a2ensite canvas-rce-api

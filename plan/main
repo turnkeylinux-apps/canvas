@@ -10,4 +10,5 @@ zlib1g-dev
 imagemagick
 redis-server
 libsqlite3-dev
-python-psycopg2
+libmariadb-dev
+python3-psycopg2

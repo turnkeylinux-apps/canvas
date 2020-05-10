@@ -1,8 +1,0 @@
-#!/bin/bash -ex
-
-# yarn pinned via overlay
-echo "deb [signed-by=/usr/share/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-
-apt-get -y install apt-transport-https
-apt-get -y update
-apt-get install -y yarn=1.10.1-1
