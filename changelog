@@ -5,6 +5,9 @@ turnkey-canvas-16.0  (1) turnkey; urgency=low
   * Repaired Canvas RCE API service for running with a domain.
 
   * Update included NodeJS to 10.x (10.20.1).
+      
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
 
  -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Wed, 13 May 2020 20:12:15 +0300
 
@@ -15,6 +18,9 @@ turnkey-canvas-15.3 (1) turnkey; urgency=low
   * Include Canvas RCE API service run with Passenger - closes #1319.
 
   * Update included NodeJS to 10.x (10.15.3).
+  
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
 
  -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Thu, 06 June 2019 18:38:42 +0300
 
@@ -26,6 +32,9 @@ turnkey-canvas-15.2 (1) turnkey; urgency=low
 
   * Include Canvas logrotate.d script - closes #1279.
     [ Zhenya Hvorostian ]
+  
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
 
  -- Jeremy Davis <jeremy@turnkeylinux.org>  Tue, 05 Feb 2019 17:22:41 +1100
 
