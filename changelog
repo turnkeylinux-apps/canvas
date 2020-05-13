@@ -1,3 +1,13 @@
+turnkey-canvas-16.0  (1) turnkey; urgency=low
+
+  * Install latest Canvas LTS stable from upstream git repo.
+
+  * Repaired Canvas RCE API service for running with a domain.
+
+  * Update included NodeJS to 10.x (10.20.1).
+
+ -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Wed, 13 May 2020 20:12:15 +0300
+
 turnkey-canvas-15.3 (1) turnkey; urgency=low
 
   * Install latest Canvas LTS stable from upstream git repo.
