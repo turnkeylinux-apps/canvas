@@ -5,12 +5,12 @@ source /usr/local/src/canvas.conf
 GEMOPTS='--no-document'
 
 # install gems
-[ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
+[ "$FAB_HTTP_PROXY" ] && export http_proxy=$FAB_HTTP_PROXY
 
-gem install $GEMOPTS bundler -v '1.16.0' --force
-rm /usr/local/rbenv/versions/2.4.5/lib/ruby/gems/2.4.0/specifications/default/bundler*.gemspec
-gem uninstall bundler -v '>1.16.0' -aIx
+gem install $GEMOPTS bundler -v '2.1.1' --force
+rm /usr/local/rbenv/versions/*/lib/ruby/gems/*/specifications/default/bundler*.gemspec
+gem uninstall bundler -v '>2.1.1' -aIx
 gem install $GEMOPTS psych
 gem install $GEMOPTS activesupport
-unset HTTP_PROXY
+unset http_proxy
 

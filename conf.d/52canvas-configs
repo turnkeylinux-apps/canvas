@@ -12,14 +12,6 @@ production:
   username: $DB_USER
   password: $DB_PASS
   timeout: 5000
-  queue:
-    adapter: postgresql
-    encoding: utf8
-    host: localhost
-    database: $DB_QUEUE
-    username: $DB_USER
-    password: $DB_PASS
-    timeout: 5000
 EOF
 
 # setup email config
@@ -44,12 +36,12 @@ EOF
 # setup cache store config
 cat >$WEBROOT/config/cache_store.yml<<EOF
 production:
-  cache_store: redis_store
+  cache_store: redis_cache_store
 EOF
 
 cat >$WEBROOT/config/redis.yml<<EOF
 production:
-  servers:
+  url:
   - redis://localhost
 EOF
 

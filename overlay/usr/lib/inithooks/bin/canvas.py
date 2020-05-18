@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Set Canvas admin password, email and domain to serve
 
 Option:
@@ -16,15 +16,16 @@ import hashlib
 import random
 import string
 import psycopg2
+import subprocess
 
 from dialog_wrapper import Dialog
-from executil import system
+from subprocess import PIPE
 
 def usage(s=None):
     if s:
-        print >> sys.stderr, "Error:", s
-    print >> sys.stderr, "Syntax: %s [options]" % sys.argv[0]
-    print >> sys.stderr, __doc__
+        print("Error:", s, file=sys.stderr, **kwargs)
+    print("Syntax: %s [options]" % sys.argv[0], file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     sys.exit(1)
 
 DEFAULT_DOMAIN="www.example.com"
@@ -33,7 +34,7 @@ def main():
     try:
         opts, args = getopt.gnu_getopt(sys.argv[1:], "h",
                                        ['help', 'pass=', 'email=', 'domain='])
-    except getopt.GetoptError, e:
+    except getopt.GetoptError as e:
         usage(e)
 
     email = ""
@@ -80,12 +81,12 @@ def main():
 
     inithooks_cache.write('APP_DOMAIN', domain)
 
-    salt = "".join(random.choice(string.letters) for line in range(20))
+    salt = "".join(random.choice(string.ascii_letters) for line in range(20))
     hash = password + salt
     for i in range(20):
-        hash = hashlib.sha512(hash).hexdigest()
+        hash = hashlib.sha512(hash.encode('utf-8')).hexdigest()
 
-    access_token = "".join(random.choice(string.letters) for line in range(20))
+    access_token = "".join(random.choice(string.ascii_letters) for line in range(20))
 
     conn = psycopg2.connect("dbname=canvas_production user=root")
 
@@ -100,13 +101,22 @@ def main():
     conn.close()
 
     config = "/var/www/canvas/config/domain.yml"
-    system("sed -i \"s|domain:.*|domain: \\\"%s\\\"|\" %s" % (domain, config))
+
+
+    process = subprocess.run(['sed', '-i', '/\"s|domain:.*|domain: \\\"%s\\\"|\" %s" % (domain, config)'], # command as a list
+                        stdout=PIPE, # capture stdout
+                        stderr=PIPE, # capture stderr too
+                        encoding=sys.stdin.encoding)    
+
 
     config = "/var/www/canvas/config/outgoing_mail.yml"
-    system("sed -i \"s|domain:.*|domain: \\\"%s\\\"|\" %s" % (domain, config))
-    system("sed -i \"s|outgoing_address:.*|outgoing_address: \\\"%s\\\"|\" %s" % (email, config))
+    process = subprocess.run(['sed', '-i', '\"s|outgoing_address:.*|outgoing_address: \\\"%s\\\"|\" %s" % (email, config)'], # command as a list
+                        stdout=PIPE, # capture stdout
+                        stderr=PIPE, # capture stderr too
+                        encoding=sys.stdin.encoding)
 
 
 if __name__ == "__main__":
     main()
+
 

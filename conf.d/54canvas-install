@@ -10,14 +10,14 @@ export CANVAS_LMS_STATS_COLLECTION="opt-out"
 
 # install canvas, populate database and compile assets
 service redis-server start
-[ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
+[ "$FAB_HTTP_PROXY" ] && export http_proxy=$FAB_HTTP_PROXY
 
 cd $WEBROOT
 
 RAILS_ENV=production bundle install --path vendor/bundle --without mysql sqlite
-yarn install
+LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 yarn install
 
-CANVAS_BUILD_CONCURRENCY=1 JS_BUILD_NO_UGLIFY=true LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 RAILS_ENV=production bundle exec rake canvas:compile_assets
+CANVAS_BUILD_CONCURRENCY=1 LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 RAILS_ENV=production bundle exec rake canvas:compile_assets
 
 RAILS_ENV=production bundle exec rake db:initial_setup
 
@@ -32,7 +32,7 @@ mkdir -p log tmp/pids public/assets
 service postgresql stop
 service redis-server stop
 
-unset HTTP_PROXY
+unset http_proxy
 
 # clean out installation log
 rm -f $WEBROOT/log/*

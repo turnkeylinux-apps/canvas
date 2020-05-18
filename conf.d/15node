@@ -2,6 +2,6 @@
 
 source /usr/local/src/canvas.conf
 
-ln -s /usr/bin/nodejs /usr/bin/node
-n 10.15.3
-npm install node-gyp-install && ./node_modules/node-gyp-install/bin.js
+n 10.20.1
+
+apt-get install yarn
