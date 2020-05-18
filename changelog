@@ -1,4 +1,12 @@
-turnkey-canvas-16.0  (1) turnkey; urgency=low
+turnkey-canvas-16.0 (1) turnkey; urgency=low
+
+  * Explcitly disable TLS<1.2 (i.e. SSLv3, TLSv1, TLSv1.1). (v15.x
+    TurnKey releases supported TLS 1.2, but could fallback as low as TLSv1).
+
+  * Update SSL/TLS cyphers to provide "Intermediate" browser/client support
+    (suitable for "General-purpose servers with a variety of clients,
+    recommended for almost all systems"). As provided by Mozilla via
+    https://ssl-config.mozilla.org/.
 
   * Install latest Canvas LTS stable from upstream git repo.
 
