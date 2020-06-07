@@ -119,7 +119,7 @@ def main():
 
     config = "/var/www/canvas/config/initializers/outgoing_mail.rb"
     subprocess.run(["sed", "-ri",
-                    "s|\:domain \=> .*|\:domain \=> \"%s\"|" % domain,
+                    "s|\:domain \=> .*|\:domain \=> \"%s\",|" % domain,
                     config])
 
 if __name__ == "__main__":
