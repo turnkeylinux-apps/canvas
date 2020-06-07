@@ -9,7 +9,6 @@ ln -s $WEBROOT/log /var/log/canvas
 # fix for github.com/phusion/passenger/wiki/Debugging-application-startup-problems
 echo "PassengerStartTimeout 300" >> /etc/apache2/mods-available/passenger.conf
 
-gem update --system
 chmod 400 $WEBROOT/config/cache_store.yml
 
 rm -f /usr/local/src/canvas.conf
