@@ -19,13 +19,14 @@ and on top of that:
      they **ARE NOT** configured to install automatically. See `Canvas
      documentation`_ for upgrade instructions.
 
-   - Installed Redis Server from Stretch repos.
+   - Installed Redis Server from Buster repos.
    - Pre-configured to use PostgreSQL (recommended for production).
    - Includes Canvas automated jobs daemon initscript.
    - Includes Apache pre-configured with Passenger support, with SSL
      support out of the box (performance, security).
-   - Includes NodeJS and NPM required for compiling assets.
-
+   - Includes NodeJS, NPM and Yarn required for compiling assets.
+   - Includes pre-configured Canvas Rich Content Editor API.
+   
 - SSL support out of the box.
 - Postfix MTA (bound to localhost) to allow sending of email (e.g.,
   password recovery).
