@@ -26,7 +26,7 @@ and on top of that:
      support out of the box (performance, security).
    - Includes NodeJS, NPM and Yarn required for compiling assets.
    - Includes pre-configured Canvas Rich Content Editor API.
-   
+
 - SSL support out of the box.
 - Postfix MTA (bound to localhost) to allow sending of email (e.g.,
   password recovery).
@@ -37,7 +37,6 @@ Credentials *(passwords set at first boot)*
 
 - Webmin, SSH: username **root**
 - Canvas: default username is email set at first boot
-
 
 .. _Canvas: https://www.instructure.com/
 .. _TurnKey Core: https://www.turnkeylinux.org/core
