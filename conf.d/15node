@@ -3,5 +3,3 @@
 source /usr/local/src/canvas.conf
 
 n 10.20.1
-
-apt-get install yarn

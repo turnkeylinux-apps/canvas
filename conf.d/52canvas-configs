@@ -18,6 +18,7 @@ EOF
 cat >$WEBROOT/config/outgoing_mail.yml<<EOF
 production:
   tls: false
+  delivery_method: "sendmail"
   enable_starttls_auto: false
   address: "localhost"
   port: "25"

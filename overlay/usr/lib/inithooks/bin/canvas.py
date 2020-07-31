@@ -21,6 +21,7 @@ import subprocess
 from dialog_wrapper import Dialog
 from subprocess import PIPE
 
+
 def usage(s=None):
     if s:
         print("Error:", s, file=sys.stderr, **kwargs)
@@ -29,6 +30,7 @@ def usage(s=None):
     sys.exit(1)
 
 DEFAULT_DOMAIN="www.example.com"
+
 
 def main():
     try:
@@ -100,23 +102,25 @@ def main():
     c.close()
     conn.close()
 
-    config = "/var/www/canvas/config/domain.yml"
-
-
-    process = subprocess.run(['sed', '-i', '/\"s|domain:.*|domain: \\\"%s\\\"|\" %s" % (domain, config)'], # command as a list
-                        stdout=PIPE, # capture stdout
-                        stderr=PIPE, # capture stderr too
-                        encoding=sys.stdin.encoding)    
-
-
     config = "/var/www/canvas/config/outgoing_mail.yml"
-    process = subprocess.run(['sed', '-i', '\"s|outgoing_address:.*|outgoing_address: \\\"%s\\\"|\" %s" % (email, config)'], # command as a list
-                        stdout=PIPE, # capture stdout
-                        stderr=PIPE, # capture stderr too
-                        encoding=sys.stdin.encoding)
+    subprocess.run(["sed", "-ri",
+                    "s|domain:.*|domain: \"%s\"|" % domain,
+                    config])
 
+    config = "/var/www/canvas/config/dynamic_settings.yml"
+    subprocess.run(["sed", "-ri",
+                    "s|app-host:.*|app-host: \"%s:3000\"|" % domain,
+                    config])
+
+    config = "/var/www/canvas/config/domain.yml"
+    subprocess.run(["sed", "-ri",
+                    "s|domain:.*|domain: \"%s\"|" % domain,
+                    config])
+
+    config = "/var/www/canvas/config/initializers/outgoing_mail.rb"
+    subprocess.run(["sed", "-ri",
+                    "s|\:domain \=> .*|\:domain \=> \"%s\",|" % domain,
+                    config])
 
 if __name__ == "__main__":
     main()
-
-
