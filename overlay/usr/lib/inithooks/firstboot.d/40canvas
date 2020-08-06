@@ -20,5 +20,4 @@ sed -i "s|signing-secret: .*|signing-secret: "$KEY"|" $DYNAMIC_SETTINGS
 sed -i "s|encryption-secret: .*|encryption-secret: "$SECRET"|" $DYNAMIC_SETTINGS
 
 service canvas_init restart
-
-service passenger restart
+service apache2 restart
