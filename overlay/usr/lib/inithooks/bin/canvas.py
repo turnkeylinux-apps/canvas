@@ -10,16 +10,14 @@ Option:
 
 import sys
 import getopt
-import inithooks_cache
-
 import hashlib
 import random
 import string
 import psycopg2
 import subprocess
 
+import inithooks_cache
 from dialog_wrapper import Dialog
-from subprocess import PIPE
 
 
 def usage(s=None):
@@ -29,7 +27,8 @@ def usage(s=None):
     print(__doc__, file=sys.stderr)
     sys.exit(1)
 
-DEFAULT_DOMAIN="www.example.com"
+
+DEFAULT_DOMAIN = "www.example.com"
 
 
 def main():
@@ -88,39 +87,41 @@ def main():
     for i in range(20):
         hash = hashlib.sha512(hash.encode('utf-8')).hexdigest()
 
-    access_token = "".join(random.choice(string.ascii_letters) for line in range(20))
+    access_token = "".join(random.choice(string.ascii_letters)
+                           for line in range(20))
 
     conn = psycopg2.connect("dbname=canvas_production user=root")
-
     c = conn.cursor()
-
-    c.execute('UPDATE users SET name=%s, sortable_name=%s WHERE id=1;', (email, email))
-    c.execute('UPDATE pseudonyms SET unique_id=%s, crypted_password=%s, password_salt=%s, single_access_token=%s WHERE user_id=1;', (email, hash, salt, access_token))
-    c.execute('UPDATE communication_channels SET path=%s WHERE id=1;', (email, ))
-
+    c.execute('UPDATE users SET name=%s, sortable_name=%s WHERE id=1;',
+              (email, email))
+    c.execute('UPDATE pseudonyms SET unique_id=%s, crypted_password=%s, password_salt=%s, single_access_token=%s WHERE user_id=1;',
+              (email, hash, salt, access_token))
+    c.execute('UPDATE communication_channels SET path=%s WHERE id=1;',
+              (email, ))
     conn.commit()
     c.close()
     conn.close()
 
     config = "/var/www/canvas/config/outgoing_mail.yml"
     subprocess.run(["sed", "-ri",
-                    "s|domain:.*|domain: \"%s\"|" % domain,
+                    's|domain:.*|domain: "%s"|' % domain,
                     config])
 
     config = "/var/www/canvas/config/dynamic_settings.yml"
     subprocess.run(["sed", "-ri",
-                    "s|app-host:.*|app-host: \"%s:3000\"|" % domain,
+                    's|app-host:.*|app-host: "%s:3000"|' % domain,
                     config])
 
     config = "/var/www/canvas/config/domain.yml"
     subprocess.run(["sed", "-ri",
-                    "s|domain:.*|domain: \"%s\"|" % domain,
+                    's|domain:.*|domain: "%s"|' % domain,
                     config])
 
     config = "/var/www/canvas/config/initializers/outgoing_mail.rb"
     subprocess.run(["sed", "-ri",
-                    "s|\:domain \=> .*|\:domain \=> \"%s\",|" % domain,
+                    's|:domain => .*|:domain => "%s",|' % domain,
                     config])
+
 
 if __name__ == "__main__":
     main()
