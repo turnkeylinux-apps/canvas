@@ -122,6 +122,10 @@ def main():
                     's|:domain => .*|:domain => "%s",|' % domain,
                     config])
 
+    print("Restarting services; please wait...")
+    for service in ['canvas_init', 'apache2']:
+        subprocess.run(['systemctl', 'restart', service])
+
 
 if __name__ == "__main__":
     main()
