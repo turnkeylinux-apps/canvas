@@ -106,6 +106,9 @@ def main():
     subprocess.run(["sed", "-ri",
                     's|domain:.*|domain: "%s"|' % domain,
                     config])
+    subprocess.run(["sed", "-ri",
+                    's|outgoing_address:.*|outgoing_address: "%s"|' % email,
+                    config])
 
     config = "/var/www/canvas/config/dynamic_settings.yml"
     subprocess.run(["sed", "-ri",
