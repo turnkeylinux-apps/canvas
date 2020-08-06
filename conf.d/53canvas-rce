@@ -1,12 +1,8 @@
-cat >>/etc/apache2/sites-available/canvas.conf<<EOF
-Listen 3000
-<VirtualHost *:3000>
-  ServerName localhost
-  ServerAlias localhost 
+# Add RCE_API Apache port to default ports conf file
+sed -i "/Listen 443/ a \\\\tListen 3000" /etc/apache2/ports.conf
 
-  SSLEngine on
-  SSLCertificateKeyFile /etc/ssl/private/cert.key
-  SSLCertificateFile /etc/ssl/private/cert.pem
+cat >>/etc/apache2/sites-available/canvas.conf<<EOF
+<VirtualHost *:3000>
   PassengerAppRoot /var/www/canvas-rce-api
   PassengerAppType node
   PassengerStartupFile app.js
@@ -15,13 +11,12 @@ EOF
 
 git clone --depth=1 https://github.com/instructure/canvas-rce-api.git /var/www/canvas-rce-api
 
-cd /var/www/canvas-rce-api
 CONFIG=/var/www/canvas/config/dynamic_settings.yml
 
+cd /var/www/canvas-rce-api
 npm i --production
 cp .env.example .env
 
 sed -i "s|^PORT=.*|PORT=3000|" .env
 sed -i "s|NODE_ENV=.*|NODE_ENV=production|" .env
 sed -i "s|canvas-rce-api-host|localhost:3000|" $CONFIG
-
