@@ -5,7 +5,8 @@ turnkey-canvas-16.1 (1) turnkey; urgency=low
       Zhenya Hvorostian <zhenya@turnkeylinux.org> ]
 
   * Fix/improve domain setting inithooks (untracked).
-    [ Zhenya Hvorostian <zhenya@turnkeylinux.org> ]
+    [ Zhenya Hvorostian <zhenya@turnkeylinux.org> &
+      Jeremy Davis <jeremy@turnkeylinux.org> ]
 
   * Fix canvas_init script (untracked issue with false regex).
     [ Zhenya Hvorostian <zhenya@turnkeylinux.org> ]
@@ -26,11 +27,11 @@ turnkey-canvas-16.1 (1) turnkey; urgency=low
     #1362.
     [ Zhenya Hvorostian <zhenya@turnkeylinux.org> ]
 
-  * Remvoe redundant Passenger init.d script (which was starting Canvas via
-    Passenger under Nginx, rather than Apache under some circusmtance).
-    Closes #1495.
+  * Remove redundant "stand-alone" Passenger service (and service calls). This
+    was starting Canvas via Passenger under Nginx, rather than Apache under
+    some circusmtance. Closes #1495.
 
- -- Jeremy Davis <jeremy@turnkeylinux.org>  Fri, 31 Jul 2020 15:52:55 +1000
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Thu, 06 Aug 2020 12:11:52 +1000
 
 turnkey-canvas-16.0 (1) turnkey; urgency=low
 
