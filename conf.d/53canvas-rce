@@ -3,9 +3,10 @@ sed -i "/Listen 443/ a \\\\tListen 3000" /etc/apache2/ports.conf
 
 cat >>/etc/apache2/sites-available/canvas.conf<<EOF
 <VirtualHost *:3000>
-  PassengerAppRoot /var/www/canvas-rce-api
-  PassengerAppType node
-  PassengerStartupFile app.js
+    SSLEngine on
+    PassengerAppRoot /var/www/canvas-rce-api
+    PassengerAppType node
+    PassengerStartupFile app.js
 </VirtualHost>
 EOF
 
