@@ -5,7 +5,7 @@ git clone --depth=1 https://github.com/instructure/canvas-rce-api.git /var/www/c
 cd /var/www/canvas-rce-api
 npm i --production
 cp .env.example .env
-chown -R wwww-data:www-data tmp
+chown -R www-data:www-data tmp
 
 sed -i "s|^PORT=.*|PORT=3000|" .env
 sed -i "s|NODE_ENV=.*|NODE_ENV=production|" .env
