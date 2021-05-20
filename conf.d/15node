@@ -2,7 +2,7 @@
 
 source /usr/local/src/canvas.conf
 
-n 10.20.1
+n 14.17.0
 
 # Reinstall previous previous version; then update to workaround weird bug
 # See: https://github.com/yarnpkg/yarn/issues/8253#issuecomment-667525692
