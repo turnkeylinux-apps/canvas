@@ -14,7 +14,14 @@ service redis-server start
 
 cd $WEBROOT
 
-RAILS_ENV=production bundle install --path vendor/bundle --without mysql sqlite
+# canvas needs specific version of bundler - see
+# https://github.com/instructure/canvas-lms/wiki/Production-Start#bundler-and-canvas-dependencies
+bundler_ver=2.2.15
+gem install bundler --version $bundler_ver
+
+RAILS_ENV=production bundle config set path 'vendor/bundle'
+RAILS_ENV=production bundle config set without 'mysql sqlite'
+RAILS_ENV=production bundle _${bundler_ver}_ install
 LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 yarn install
 
 CANVAS_BUILD_CONCURRENCY=1 LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 RAILS_ENV=production bundle exec rake canvas:compile_assets
@@ -27,7 +34,6 @@ cd -
 
 mkdir -p log tmp/pids public/assets 
 
-
 # stop services
 service postgresql stop
 service redis-server stop
@@ -36,4 +42,3 @@ unset http_proxy
 
 # clean out installation log
 rm -f $WEBROOT/log/*
-
