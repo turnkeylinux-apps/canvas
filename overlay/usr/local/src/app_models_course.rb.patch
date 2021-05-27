@@ -1,0 +1,13 @@
+diff --git a/app/models/course.rb b/app/models/course.rb
+index 7f047881..0bf3eab4 100644
+--- a/app/models/course.rb
++++ b/app/models/course.rb
+@@ -246,7 +246,7 @@ class Course < ActiveRecord::Base
+   after_commit :update_cached_due_dates
+ 
+   after_create :set_default_post_policy
+-  after_create :copy_from_course_template
++  #after_create :copy_from_course_template
+ 
+   after_update :clear_cached_short_name, :if => :saved_change_to_course_code?
+ 
