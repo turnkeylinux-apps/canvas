@@ -43,6 +43,11 @@ _patch=/usr/local/src/app_models_course.rb.patch
 git apply $_patch
 rm -rf $_patch
 
+# apply another patch; this time to the init script
+_patch=/usr/local/src/canvas_init.patch
+git apply $_patch
+rm -rf $_patch
+
 bundle exec rake db:initial_setup
 
 cd gems/canvas_i18nliner/
