@@ -20,23 +20,24 @@ service redis-server start
 
 cd $WEBROOT
 
+# set ruby/rails vars
+export GEM_HOME=$(cat config/GEM_HOME)
+export RAILS_ENV=production
+export BUNDLE_PATH="vendor/bundle"
+
 # canvas needs specific version of bundler - see
 # https://github.com/instructure/canvas-lms/wiki/Production-Start#bundler-and-canvas-dependencies
-bundler_ver=2.2.15
-gem install bundler --version $bundler_ver
+gem install bundler --version 2.2.15
 
-export RAILS_ENV=production
-
-bundle config set path 'vendor/bundle'
 bundle config set without 'mysql sqlite'
-bundle _${bundler_ver}_ install
+bundle install
 
 mkdir -p $YARN_CACHE
 yarn install ---scripts-prepend-node-path --network-concurrency 1 --cache-folder $YARN_CACHE
 
 CANVAS_BUILD_CONCURRENCY=1 bundle exec rake canvas:compile_assets
 
-# apply patch to work around issue; see
+# apply patch to work around install issue; see
 # https://groups.google.com/g/canvas-lms-users/c/A5l8B84SezM
 _patch=/usr/local/src/app_models_course.rb.patch
 git apply $_patch
