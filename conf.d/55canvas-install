@@ -20,14 +20,14 @@ service redis-server start
 
 cd $WEBROOT
 
+# canvas needs specific version of bundler - see
+# https://github.com/instructure/canvas-lms/wiki/Production-Start#bundler-and-canvas-dependencies
+gem install bundler --version 2.2.15
+
 # set ruby/rails vars
 export GEM_HOME=$(cat config/GEM_HOME)
 export RAILS_ENV=production
 export BUNDLE_PATH="vendor/bundle"
-
-# canvas needs specific version of bundler - see
-# https://github.com/instructure/canvas-lms/wiki/Production-Start#bundler-and-canvas-dependencies
-gem install bundler --version 2.2.15
 
 bundle config set without 'mysql sqlite'
 bundle install
