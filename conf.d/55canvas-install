@@ -22,7 +22,7 @@ cd $WEBROOT
 
 # canvas needs specific version of bundler - see
 # https://github.com/instructure/canvas-lms/wiki/Production-Start#bundler-and-canvas-dependencies
-gem install bundler --version 2.2.15
+gem install bundler --version 2.2.33
 
 # set ruby/rails vars
 export GEM_HOME=$(cat config/GEM_HOME)
@@ -32,25 +32,37 @@ export BUNDLE_PATH="vendor/bundle"
 bundle config set without 'mysql sqlite'
 bundle install
 
+yarn config set strict-ssl false
 mkdir -p $YARN_CACHE
 yarn install ---scripts-prepend-node-path --network-concurrency 1 --cache-folder $YARN_CACHE
 
-CANVAS_BUILD_CONCURRENCY=1 bundle exec rake canvas:compile_assets
+
+# COMPILE_ASSETS_BRANC_CONFIGS variable:
+# https://github.com/instructure/canvas-lms/issues/2023
+
+COMPILE_ASSETS_BRAND_CONFIGS=0 CANVAS_BUILD_CONCURRENCY=1 bundle exec rake canvas:compile_assets
+chown -R www-data:www-data $WEBROOT/public/dist/brandable_css
 
 # apply patch to work around install issue; see
 # https://groups.google.com/g/canvas-lms-users/c/A5l8B84SezM
-_patch=/usr/local/src/app_models_course.rb.patch
-git apply $_patch
-rm -rf $_patch
+#_patch=/usr/local/src/app_models_course.rb.patch
+#git apply $_patch
+#rm -rf $_patch
 
 # apply another patch; this time to the init script
 _patch=/usr/local/src/canvas_init.patch
 git apply $_patch
 rm -rf $_patch
 
+
+# https://github.com/instructure/canvas-lms/issues/2035
+mv db/migrate/20210823222355_change_immersive_reader_allowed_on_to_on.rb .
 bundle exec rake db:initial_setup
+mv 20210823222355_change_immersive_reader_allowed_on_to_on.rb  db/migrate/
+bundle exec rake db:migrate
 
 cd gems/canvas_i18nliner/
+
 npm install --unsafe-perm
 cd -
 

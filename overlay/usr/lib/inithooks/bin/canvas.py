@@ -16,8 +16,8 @@ import string
 import psycopg2
 import subprocess
 
-import inithooks_cache
-from dialog_wrapper import Dialog
+from libinithooks import inithooks_cache
+from libinithooks.dialog_wrapper import Dialog
 
 
 def usage(s=None):

@@ -1,13 +1,41 @@
 diff --git a/app/models/course.rb b/app/models/course.rb
-index 7f047881..0bf3eab4 100644
+index a2c1baa1..6aaeb9b4 100644
 --- a/app/models/course.rb
 +++ b/app/models/course.rb
-@@ -246,7 +246,7 @@ class Course < ActiveRecord::Base
+@@ -272,7 +272,7 @@ class Course < ActiveRecord::Base
    after_commit :update_cached_due_dates
- 
+
    after_create :set_default_post_policy
 -  after_create :copy_from_course_template
 +  #after_create :copy_from_course_template
- 
-   after_update :clear_cached_short_name, :if => :saved_change_to_course_code?
- 
+
+   after_update :clear_cached_short_name, if: :saved_change_to_course_code?
+
+@@ -1310,8 +1310,8 @@ class Course < ActiveRecord::Base
+
+   def update_cached_due_dates
+     if saved_change_to_enrollment_term_id?
+-      recompute_student_scores
+-      DueDateCacher.recompute_course(self)
++      #recompute_student_scores
++      #DueDateCacher.recompute_course(self)
+     end
+   end
+
+@@ -1343,11 +1343,11 @@ class Course < ActiveRecord::Base
+         inst_job_opts[:singleton] = "recompute_student_scores:#{global_id}:#{grading_period_id}"
+       end
+
+-      delay_if_production(**inst_job_opts).recompute_student_scores_without_send_later(
+-        student_ids,
+-        grading_period_id: grading_period_id,
+-        update_all_grading_period_scores: update_all_grading_period_scores
+-      )
++      #delay_if_production(**inst_job_opts).recompute_student_scores_without_send_later(
++      #  student_ids,
++      #  grading_period_id: grading_period_id,
++      #  update_all_grading_period_scores: update_all_grading_period_scores
++      #)
+     end
+   end
+

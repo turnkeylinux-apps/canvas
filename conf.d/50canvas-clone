@@ -6,7 +6,7 @@ source /usr/local/src/canvas.conf
 URL="https://github.com/instructure/canvas-lms.git"
 
 [ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
-git clone $URL $WEBROOT --depth=1 -b stable
+git clone $URL $WEBROOT --depth=1 -b prod
 unset HTTP_PROXY
 
 cd $WEBROOT
