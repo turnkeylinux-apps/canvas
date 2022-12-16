@@ -68,11 +68,6 @@ bundle exec rake db:initial_setup
 mv 20210823222355_change_immersive_reader_allowed_on_to_on.rb  db/migrate/
 bundle exec rake db:migrate
 
-cd gems/canvas_i18nliner/
-
-npm install --unsafe-perm
-cd -
-
 mkdir -p log tmp/pids public/assets 
 
 # stop services
