@@ -62,6 +62,8 @@ rm -rf $_patch
 mv db/migrate/20210812210129_add_singleton_column.rb db/migrate/20111111214311_add_singleton_column.rb
 # https://github.com/instructure/canvas-lms/issues/2035
 mv db/migrate/20210823222355_change_immersive_reader_allowed_on_to_on.rb .
+# weird zeitwerk path issue fix
+sed -i 's|\(lib/ssl_common\)|./\1|' app/models/report_snapshot.rb
 bundle exec rake db:initial_setup
 mv 20210823222355_change_immersive_reader_allowed_on_to_on.rb  db/migrate/
 bundle exec rake db:migrate
