@@ -40,7 +40,11 @@ yarn install --scripts-prepend-node-path --cache-folder $YARN_CACHE
 # COMPILE_ASSETS_BRANC_CONFIGS variable:
 # https://github.com/instructure/canvas-lms/issues/2023
 
-COMPILE_ASSETS_BRAND_CONFIGS=0 CANVAS_BUILD_CONCURRENCY=1 bundle exec rake canvas:compile_assets
+# fix for webpack failure
+# https://stackoverflow.com/questions/69692842/error-message-error0308010cdigital-envelope-routinesunsupported
+sed -i 's/5120/5120 --openssl-legacy-provider/g' package.json
+
+COMPILE_ASSETS_BRAND_CONFIGS=0 bundle exec rake canvas:compile_assets
 chown -R www-data:www-data $WEBROOT/public/dist/brandable_css
 
 # apply patch to work around install issue; see
