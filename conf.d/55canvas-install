@@ -32,6 +32,7 @@ export BUNDLE_PATH="vendor/bundle"
 bundle config set without 'mysql sqlite'
 bundle install
 
+npm install -g yarn@1.22.11 wsrun
 yarn config set strict-ssl false
 mkdir -p $YARN_CACHE
 yarn install ---scripts-prepend-node-path --network-concurrency 1 --cache-folder $YARN_CACHE
