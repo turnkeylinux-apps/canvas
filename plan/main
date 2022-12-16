@@ -12,3 +12,4 @@ redis-server
 libsqlite3-dev
 libmariadb-dev
 python3-psycopg2
+libidn11-dev /* for ruby-idn */
