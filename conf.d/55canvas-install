@@ -47,12 +47,6 @@ sed -i 's/5120/5120 --openssl-legacy-provider/g' package.json
 COMPILE_ASSETS_BRAND_CONFIGS=0 bundle exec rake canvas:compile_assets
 chown -R www-data:www-data $WEBROOT/public/dist/brandable_css
 
-# apply patch to work around install issue; see
-# https://groups.google.com/g/canvas-lms-users/c/A5l8B84SezM
-#_patch=/usr/local/src/app_models_course.rb.patch
-#git apply $_patch
-#rm -rf $_patch
-
 # apply another patch; this time to the init script
 _patch=/usr/local/src/canvas_init.patch
 git apply $_patch
