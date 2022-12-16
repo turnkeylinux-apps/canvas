@@ -2,11 +2,17 @@ turnkey-canvas-17.1 (1) turnkey; urgency=low
 
   * Install latest Canvas LTS stable (prod branch) and required dependencies. Canvas
     installed from upstream git repo.
+    [ Zhenya Hvorostian <zhenya@turnkeylinux.org> &
+      Anton Pyrogovskyi <anton@turnkeylinux.org> ]
+
+  * Use LTS Node version already installed by common (currently 18.12.1).
+
+  * Install yarn version recommended by upstream (currently 1.22.11).
 
   * Note: Please refer to turnkey-core's 17.1 changelog for changes common to
     all appliances. Here we only describe changes specific to this appliance.
 
- -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Tue, 10 May 2022 21:30:00 +0300
+ -- Anton Pyrogovskyi <anton@turnkeylinux.org>  Fri, 16 Dec 2022 19:36:39 +0100
 
 turnkey-canvas-16.2 (1) turnkey; urgency=low
 
