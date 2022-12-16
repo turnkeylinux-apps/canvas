@@ -58,7 +58,8 @@ _patch=/usr/local/src/canvas_init.patch
 git apply $_patch
 rm -rf $_patch
 
-
+# https://github.com/instructure/canvas-lms/issues/2034
+mv db/migrate/20210812210129_add_singleton_column.rb db/migrate/20111111214311_add_singleton_column.rb
 # https://github.com/instructure/canvas-lms/issues/2035
 mv db/migrate/20210823222355_change_immersive_reader_allowed_on_to_on.rb .
 bundle exec rake db:initial_setup
