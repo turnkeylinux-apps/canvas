@@ -1,7 +1,0 @@
-#!/bin/bash -ex
-
-source /usr/local/src/canvas.conf
-
-n 14.17.0
-
-apt-get install -y yarn
