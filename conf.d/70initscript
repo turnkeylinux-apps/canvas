@@ -3,7 +3,6 @@
 source /usr/local/src/canvas.conf
 
 # setup automated jobs
-echo $(gem env home) > $WEBROOT/config/GEM_HOME
 ln -s $WEBROOT/script/canvas_init /etc/init.d/canvas_init
 
 # changes applied with patch in overlays/usr/local/src/canvas_init.patch
