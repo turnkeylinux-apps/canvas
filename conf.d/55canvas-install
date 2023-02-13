@@ -25,12 +25,15 @@ cd $WEBROOT
 gem install bundler --version 2.2.33
 
 # set ruby/rails vars
-export GEM_HOME=$(cat config/GEM_HOME)
 export RAILS_ENV=production
 export BUNDLE_PATH="vendor/bundle"
 
+bundle config set --local path vendor/bundle
 bundle config set without 'mysql sqlite'
 bundle install
+
+bundle exec gem env home > config/GEM_HOME
+export GEM_HOME=$(cat config/GEM_HOME)
 
 npm install -g yarn@1.22.11 wsrun
 yarn config set strict-ssl false
