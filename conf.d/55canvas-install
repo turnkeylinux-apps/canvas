@@ -23,6 +23,8 @@ cd $WEBROOT
 # canvas needs specific version of bundler - see
 # https://github.com/instructure/canvas-lms/wiki/Production-Start#bundler-and-canvas-dependencies
 gem install bundler --version 2.2.33
+# also needs specific version of strscan
+gem install strscan --version 3.0.5
 
 # set ruby/rails vars
 export RAILS_ENV=production
