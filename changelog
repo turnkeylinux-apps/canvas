@@ -1,3 +1,13 @@
+turnkey-canvas-17.1 (1) turnkey; urgency=low
+
+  * Updated all Debian packages to latest.
+    [ autopatched by buildtasks ]
+
+  * Patched bugfix release. Closes #1734.
+    [ autopatched by buildtasks ]
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Tue, 21 Feb 2023 02:54:06 +0000
+
 turnkey-canvas-17.0 (1) turnkey; urgency=low
 
   * Install latest Canvas LTS stable (prod branch) and required dependencies. Canvas
