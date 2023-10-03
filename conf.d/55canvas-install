@@ -22,7 +22,7 @@ cd $WEBROOT
 
 # canvas needs specific version of bundler - see
 # https://github.com/instructure/canvas-lms/wiki/Production-Start#bundler-and-canvas-dependencies
-gem install bundler --version 2.2.33
+gem install bundler --version 2.4.19
 
 # set ruby/rails vars
 export RAILS_ENV=production
@@ -35,8 +35,8 @@ bundle install
 bundle exec gem env home > config/GEM_HOME
 export GEM_HOME=$(cat config/GEM_HOME)
 
-npm install -g yarn@1.22.11 wsrun
 yarn config set strict-ssl false
+npm install -g yarn@1.22.19 wsrun
 mkdir -p $YARN_CACHE
 yarn install --scripts-prepend-node-path --cache-folder $YARN_CACHE
 

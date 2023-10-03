@@ -65,15 +65,13 @@ default:
 EOF
 
 # Canvas Rich Content Editor API
-cat >$WEBROOT/config/dynamic_settings.yml<<EOF
+cat >$WEBROOT/config/vault_contents.yml<<EOF
 production:
-  config:
-    canvas:
-      canvas:
-        encryption-secret: "turnkey1"
-        signing-secret: "turnkey1"
-      rich-content-service:
-        app-host: "canvas-rce-api-host"
+  'app-canvas/data/secrets':
+    data:
+      canvas_security:
+        encryption_secret: "turnkey1"
+        signing_secret: "turnkey1"
 EOF
 
 cat >$WEBROOT/config/security.yml<<EOF
@@ -81,6 +79,14 @@ production: &default
   # replace this with a random string of at least 20 characters
   encryption_key: 1234512345123451234512345123451234512345123451234512345
   lti_iss: 'https://canvas.instructure.com'
+EOF
+
+cat >$WEBROOT/config/dynamic_settings.yml<<EOF
+production:
+  config:
+    canvas:
+      rich-content-service:
+        app-host: "canvas-rce-api-host"
 EOF
 
 # copy example configurations

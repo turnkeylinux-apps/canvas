@@ -7,10 +7,8 @@ GEMOPTS='--no-document'
 # install gems
 [ "$FAB_HTTP_PROXY" ] && export http_proxy=$FAB_HTTP_PROXY
 
-gem install $GEMOPTS bundler -v '2.2.33' --force
-rm /usr/local/rbenv/versions/*/lib/ruby/gems/*/specifications/default/bundler*.gemspec
-gem uninstall bundler -v '>2.2.33' -aIx
 gem install $GEMOPTS psych
 gem install $GEMOPTS activesupport
+gem update $GEMOPTS strscan
 unset http_proxy
 
