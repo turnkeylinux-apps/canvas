@@ -1,6 +1,6 @@
 WEBMIN_FW_TCP_INCOMING = 22 80 443 3000 12320 12321
 
-RBY_VER=3.1.4
+RUBY_VER=3.1.4
 include $(FAB_PATH)/common/mk/turnkey/rails-pgsql.mk
 include $(FAB_PATH)/common/mk/turnkey/nodejs.mk
 include $(FAB_PATH)/common/mk/turnkey.mk
