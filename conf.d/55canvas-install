@@ -38,7 +38,7 @@ export GEM_HOME=$(cat config/GEM_HOME)
 yarn config set strict-ssl false
 npm install -g yarn@1.22.19 wsrun
 mkdir -p $YARN_CACHE
-yarn install --scripts-prepend-node-path --cache-folder $YARN_CACHE
+yarn install --network-timeout 1000000 --scripts-prepend-node-path --cache-folder $YARN_CACHE
 
 # COMPILE_ASSETS_BRANC_CONFIGS variable:
 # https://github.com/instructure/canvas-lms/issues/2023
