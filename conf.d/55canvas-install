@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+# disable Aapche mod_evasive for now - see
+# https://github.com/turnkeylinux/tracker/issues/1965
+a2dismod evasive
+
 source /usr/local/src/canvas.conf
 
 YARN_CACHE=/var/cache/yarn
@@ -64,6 +68,10 @@ sed -i 's|\(lib/ssl_common\)|./\1|' app/models/report_snapshot.rb
 bundle exec rake db:initial_setup
 # mv 20210823222355_change_immersive_reader_allowed_on_to_on.rb  db/migrate/
 bundle exec rake db:migrate
+
+# resolve (errant) 'failed to allocate memory' issue - closes
+# https://github.com/turnkeylinux/tracker/issues/1965
+bundle exec rake switchman_inst_jobs:install:migrations
 
 mkdir -p log tmp/pids public/assets 
 
