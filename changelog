@@ -1,3 +1,26 @@
+turnkey-canvas-18.1 (1) turnkey; urgency=low
+
+  * Install latest Canvas LTS stable (prod branch), Canvas RCE API and required
+    dependencies. Canvas installed from upstream git repo.
+
+  * Update Ruby (3.1.6).
+
+  * Disable Apache mod_evasie for Canvas - part of #1965.
+
+  # Run switchman_inst_jobs:install:migrations - closes #1965.
+
+  * Configuration console (confconsole) - v2.1.6:
+    - Let's Encrypt/Dehydrated - bugfix cron failure - closes #1962.
+    - General dehydrated-wrapper code cleanup - now passes shellcheck.
+
+  * Web management console (webmin):
+    - Include webmin-logviewer module by default - closes #1866.
+    - Replace webmin-shell with webmin-xterm module by default - closes #1904.
+
+  * Reduce log noise by creating ntpsec log dir - closes #1952.
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Sat, 06 Jul 2024 11:31:36 +0000
+
 turnkey-canvas-18.0 (1) turnkey; urgency=low
 
   * Update Ruby (3.1.4).
