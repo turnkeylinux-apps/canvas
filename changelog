@@ -9,6 +9,9 @@ turnkey-canvas-18.1 (1) turnkey; urgency=low
 
   # Run switchman_inst_jobs:install:migrations - closes #1965.
 
+  * Update GEM_PATH in Apache conf - didn't seem to be causing issues, but
+    better for it to be correct path.
+
   * Configuration console (confconsole) - v2.1.6:
     - Let's Encrypt/Dehydrated - bugfix cron failure - closes #1962.
     - General dehydrated-wrapper code cleanup - now passes shellcheck.
