@@ -13,8 +13,8 @@ if [[ -z "$GEM_PATH" ]] || [[ ! -d "$GEM_PATH" ]]; then
 fi
 
 APACHE_CONF=/etc/apache2/sites-available/canvas.conf
-sed -i "/BUNDLE_PATH/ s|__BUNDLE_PATH__|$BUNDLE_PATH|"
-sed -i "/GEM_PATH/ s|__GEM_PATH__|$GEM_PATH|"
+sed -i "/BUNDLE_PATH/ s|__BUNDLE_PATH__|$BUNDLE_PATH|" "$APACHE_CONF"
+sed -i "/GEM_PATH/ s|__GEM_PATH__|$GEM_PATH|" "$APACHE_CONF"
 
 # create convenience symlink for logs
 rm -rf /var/log/canvas
