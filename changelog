@@ -12,6 +12,8 @@ turnkey-canvas-18.1 (1) turnkey; urgency=low
   * Update GEM_PATH in Apache conf - didn't seem to be causing issues, but
     better for it to be correct path.
 
+  * Apply fix so passenger-status works - useful for debugging.
+
   * Configuration console (confconsole) - v2.1.6:
     - Let's Encrypt/Dehydrated - bugfix cron failure - closes #1962.
     - General dehydrated-wrapper code cleanup - now passes shellcheck.
