@@ -5,6 +5,8 @@ turnkey-canvas-18.1 (1) turnkey; urgency=low
 
   * Update Ruby (3.1.6).
 
+  * Update bundler to 2.5.10 - as per "Production Start" doc.
+
   * Disable Apache mod_evasie for Canvas - part of #1965.
 
   * Run switchman_inst_jobs:install:migrations - closes #1965.
