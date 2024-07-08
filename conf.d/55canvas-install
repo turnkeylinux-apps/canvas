@@ -26,7 +26,7 @@ cd $WEBROOT
 
 # canvas needs specific version of bundler - see
 # https://github.com/instructure/canvas-lms/wiki/Production-Start#bundler-and-canvas-dependencies
-gem install bundler --version 2.4.19
+gem install bundler --version 2.5.10
 
 # set ruby/rails vars
 export RAILS_ENV=production
