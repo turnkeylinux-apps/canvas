@@ -26,7 +26,7 @@ chown -R www-data:www-data /var/www/canvas/{config,log}
 echo "PassengerStartTimeout 300" >> /etc/apache2/mods-available/passenger.conf
 
 # part of fix for https://github.com/phusion/passenger/issues/2397
-echo "PPassengerInstanceRegistryDir /run/passenger-instreg" >> /etc/apache2/mods-available/passenger.conf
+echo "PassengerInstanceRegistryDir /run/passenger-instreg" >> /etc/apache2/mods-available/passenger.conf
 # see also /etc/tmpfiles.d/passenger.conf in overlay
 
 chmod 400 $WEBROOT/config/cache_store.yml
