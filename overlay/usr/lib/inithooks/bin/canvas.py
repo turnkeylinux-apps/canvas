@@ -19,16 +19,15 @@ import subprocess
 from libinithooks import inithooks_cache
 from libinithooks.dialog_wrapper import Dialog
 
+DEFAULT_DOMAIN = "www.example.com"
+
 
 def usage(s=None):
     if s:
         print("Error:", s, file=sys.stderr, **kwargs)
-    print("Syntax: %s [options]" % sys.argv[0], file=sys.stderr)
+    print(f"Syntax: {sys.argv[0]} [options]", file=sys.stderr)
     print(__doc__, file=sys.stderr)
     sys.exit(1)
-
-
-DEFAULT_DOMAIN = "www.example.com"
 
 
 def main():
@@ -104,25 +103,20 @@ def main():
 
     config = "/var/www/canvas/config/outgoing_mail.yml"
     subprocess.run(["sed", "-ri",
-                    's|domain:.*|domain: "%s"|' % domain,
+                    f's|domain:.*|domain: "{domain}"|',
                     config])
     subprocess.run(["sed", "-ri",
-                    's|outgoing_address:.*|outgoing_address: "%s"|' % email,
+                    f's|outgoing_address:.*|outgoing_address: "{email}"|',
                     config])
 
     config = "/var/www/canvas/config/dynamic_settings.yml"
     subprocess.run(["sed", "-ri",
-                    's|app-host:.*|app-host: "%s:3000"|' % domain,
+                    f's|app-host:.*|app-host: "{domain}:3000"|',
                     config])
 
     config = "/var/www/canvas/config/domain.yml"
     subprocess.run(["sed", "-ri",
-                    's|domain:.*|domain: "%s"|' % domain,
-                    config])
-
-    config = "/var/www/canvas/config/initializers/outgoing_mail.rb"
-    subprocess.run(["sed", "-ri",
-                    's|:domain => .*|:domain => "%s",|' % domain,
+                    f's|domain:.*|domain: "{domain}"|',
                     config])
 
     print("Restarting services; please wait...")
