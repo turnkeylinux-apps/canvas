@@ -125,6 +125,14 @@ production:
     canvas:
       rich-content-service:
         app-host: "canvas-rce-api-host"
+  store:
+    canvas:
+      lti-keys:
+        # these values are (re)generated on firstboot by /usr/lib/inithooks/bin/regen_jwks
+        # see comments in dynamic_settings.yml.example for more info
+        jwk-past.json: "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"encrypted_str\",\"kid\":\"2024-08-22T10:26:24Z\",\"d\":\"encrypted_str\",\"p\":\"encrypted_str\",\"q\":\"encrypted_str\",\"dp\":\"encrypted_str\",\"dq\":\"encrypted_str\",\"qi\":\"encrypted_str\"}"
+        jwk-present.json: "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"encrypted_str\",\"kid\":\"2024-08-22T10:26:24Z\",\"d\":\"encrypted_str\",\"p\":\"encrypted_str\",\"q\":\"encrypted_str\",\"dp\":\"encrypted_str\",\"dq\":\"encrypted_str\",\"qi\":\"encrypted_str\"}"
+        jwk-future.json: "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"encrypted_str\",\"kid\":\"2024-08-22T10:26:24Z\",\"d\":\"encrypted_str\",\"p\":\"encrypted_str\",\"q\":\"encrypted_str\",\"dp\":\"encrypted_str\",\"dq\":\"encrypted_str\",\"qi\":\"encrypted_str\"}"
 EOF
 
 # copy example configurations
