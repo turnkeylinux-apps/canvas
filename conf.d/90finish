@@ -32,3 +32,7 @@ echo "PassengerInstanceRegistryDir /run/passenger-instreg" >> /etc/apache2/mods-
 chmod 400 $WEBROOT/config/cache_store.yml
 
 rm -f /usr/local/src/canvas.conf
+
+# clean caches
+py3clean /
+yarn cache clean
