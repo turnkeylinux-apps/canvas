@@ -119,6 +119,11 @@ def main():
                     f's|domain:.*|domain: "{domain}"|',
                     config])
 
+    config = "/var/www/canvas/config/security.yml"
+    subprocess.run(["sed", "-ri",
+                    f's|lti_iss:.*|lti_iss: "https://{domain}"|',
+                    config])
+
     print("Restarting services; please wait...")
     for service in ['canvas_init', 'apache2']:
         subprocess.run(['systemctl', 'restart', service])
