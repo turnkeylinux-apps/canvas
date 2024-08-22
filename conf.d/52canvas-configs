@@ -135,6 +135,14 @@ production:
         jwk-future.json: "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"n\":\"encrypted_str\",\"kid\":\"2024-08-22T10:26:24Z\",\"d\":\"encrypted_str\",\"p\":\"encrypted_str\",\"q\":\"encrypted_str\",\"dp\":\"encrypted_str\",\"dq\":\"encrypted_str\",\"qi\":\"encrypted_str\"}"
 EOF
 
+conf_file=logging.yml
+cat > "$CONF_DIR/$conf_file" <<EOF
+$(add_comment)
+production:
+  logger: rails
+  log_level: info
+EOF
+
 # copy example configurations
 CONFIGS="amazon_s3 file_store external_migration"
 for c in $CONFIGS; do
