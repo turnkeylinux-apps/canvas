@@ -113,7 +113,7 @@ $(add_comment)
 production: &default
   # replace this with a random string of at least 20 characters
   encryption_key: 1234512345123451234512345123451234512345123451234512345
-  lti_iss: 'https://canvas.instructure.com'
+  lti_iss: "https://$DOMAIN"
 EOF
 
 conf_file=dynamic_settings.yml
