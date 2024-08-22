@@ -53,11 +53,11 @@ production:
     workers: 2
     max_priority: 10
   - queue: canvas_queue
-    workers: 2
+    workers: 4
 
   max_run_time: 28800
   worker_max_job_count: 20
-  worker_max_memory_usage: 536870912
+  worker_max_memory_usage: 1073741824
 
 default:
   workers:
