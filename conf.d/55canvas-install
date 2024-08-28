@@ -47,10 +47,6 @@ yarn install --network-timeout 1000000 --scripts-prepend-node-path --cache-folde
 COMPILE_ASSETS_BRAND_CONFIGS=0 bundle exec rake canvas:compile_assets
 chown -R www-data:www-data $WEBROOT/public/dist/brandable_css
 
-# patch init script
-_patch=/usr/local/src/canvas_init.patch
-git apply $_patch
-
 bundle exec rake db:initial_setup
 bundle exec rake db:migrate
 

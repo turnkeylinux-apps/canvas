@@ -6,8 +6,8 @@ source /usr/local/src/canvas.conf
 ln -s $WEBROOT/script/canvas_init /etc/init.d/canvas_init
 
 # changes applied with patch in overlays/usr/local/src/canvas_init.patch
-# during conf.d/55canvas-install
-# sed -i '/exec su/ s#$# -s /bin/bash#' $WEBROOT/script/canvas_init
-# sed -i "s|exec script\/delayed_job \$@|bundle exec script\/delayed_job \$\@|" $WEBROOT/script/canvas_init
+cd $WEBROOT
+_patch=$SRC/canvas_init.patch
+git apply $_patch
 
 update-rc.d canvas_init defaults
