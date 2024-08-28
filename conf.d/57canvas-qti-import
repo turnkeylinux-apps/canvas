@@ -1,0 +1,10 @@
+#!/bin/bash -ex
+
+# Install QTI import tool - as requested/noted on TKL forums:
+# https://www.turnkeylinux.org/forum/support/wed-20231122-1754/canvas-fails-import-qti-quiz-files
+
+source /usr/local/src/canvas.conf
+
+QTI=QTIMigrationTool
+git clone --depth 1 https://github.com/instructure/$QTI.git $WEBROOT/vendor/$QTI
+chmod +x $WEBROOT/vendor/$QTI
