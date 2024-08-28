@@ -3,13 +3,19 @@ turnkey-canvas-18.1 (1) turnkey; urgency=low
   * Install latest Canvas LTS stable (prod branch), Canvas RCE API and required
     dependencies. Canvas installed from upstream git repo.
 
+  * Pre-install QTI import tool - as requested/suggested on TKL forums.
+
   * Update Ruby (3.1.6).
 
   * Update bundler to 2.5.10 - as per "Production Start" doc.
 
   * Disable Apache mod_evasie for Canvas - part of #1965.
 
-  * Run switchman_inst_jobs:install:migrations - closes #1965.
+  * Bump delayed worker RAM allowance. Real fix for  - closes #1978 & #1979.
+    Also properly resolves #1965.
+
+  * Add LTI JWK keys to default conf (regenerated at firstboot) - should close
+    #1977 - although has not been confirmed, needs user feedback.
 
   * Update GEM_PATH in Apache conf - didn't seem to be causing issues, but
     better for it to be correct path.
@@ -26,7 +32,7 @@ turnkey-canvas-18.1 (1) turnkey; urgency=low
 
   * Reduce log noise by creating ntpsec log dir - closes #1952.
 
- -- Jeremy Davis <jeremy@turnkeylinux.org>  Sat, 06 Jul 2024 11:31:36 +0000
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Wed, 28 Aug 2024 00:36:52 +0000
 
 turnkey-canvas-18.0 (1) turnkey; urgency=low
 
