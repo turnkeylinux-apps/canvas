@@ -17,7 +17,8 @@ sed -i "/BUNDLE_PATH/ s|__BUNDLE_PATH__|$BUNDLE_PATH|" "$APACHE_CONF"
 sed -i "/GEM_PATH/ s|__GEM_PATH__|$GEM_PATH|" "$APACHE_CONF"
 
 PASSGR_CONF=/etc/apache2/mods-available/passenger.conf
-echo "PassengerStartTimeout 300" >> $PASSGR_CONF
+# 6 min timeout - ensures Canvas loads at build time testing
+echo "PassengerStartTimeout 360" >> $PASSGR_CONF
 # part of fix for https://github.com/phusion/passenger/issues/2397
 # other part in /etc/tmpfiles.d/passenger.conf (overlay)
 echo "PassengerInstanceRegistryDir /run/passenger-instreg" >> $PASSGR_CONF
