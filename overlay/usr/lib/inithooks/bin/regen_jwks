@@ -1,0 +1,30 @@
+#!/bin/bash -e
+
+# bash script that wraps rails script (regen_jwks.rb) to generate unique Canvas
+# LTI JWK tokens and update the corresponding keys in dynamic_settings.yml
+
+INIT_BIN="/usr/lib/inithooks/bin"
+WEBROOT="/var/www/canvas"
+CONF="$WEBROOT/config/dynamic_settings.yml"
+
+export RAILS_ENV=production
+
+echo "Regenerating LTI JWKs - please wait"
+cd $WEBROOT
+readarray -t lines <<<"$(bin/rails runner $INIT_BIN/regen_jwks.rb 2>/dev/null)"
+
+for line in "${lines[@]}"; do
+    read -ra key_val <<<"$line"
+    key="${key_val[0]}"
+    val="${key_val[1]}"
+
+    # (double) escape double quotes - using UTF8 hex ASCII codes
+    # '\x22' = '"'
+    # '\x5C' = '\'
+    # disable "use bash var search/replace" check as this only works with sed
+    # shellcheck disable=SC2001
+    jwk=$(sed "s|\x22|\x5C\x5C\x22|g" <<<"$val")
+    # the double escape above is reqd because this sed strips one
+    sed -Ei "/ +$key:/ s|^( +$key:).*|\1 \"$jwk\"|g" "$CONF"
+done
+echo "JWTs updated"
