@@ -1,20 +1,14 @@
 turnkey-canvas-18.1 (1) turnkey; urgency=low
 
-  * Install latest Canvas LTS stable (prod branch), Canvas RCE API and required
-    dependencies. Canvas installed from upstream git repo.
+  * Update to Canvas security.yml config:
+    - delayed_jobs.yml - bump worker_max_memory_usage memory allowance
+      - closes #1979.
+    - security.yml - set domain for lti_iss - untracked bug.
 
-  * Update Ruby (3.1.6).
+  * Disable Apache mod_evasive for Canvas - part of #1965.
 
-  * Update bundler to 2.5.10 - as per "Production Start" doc.
-
-  * Disable Apache mod_evasie for Canvas - part of #1965.
-
-  * Run switchman_inst_jobs:install:migrations - closes #1965.
-
-  * Update GEM_PATH in Apache conf - didn't seem to be causing issues, but
-    better for it to be correct path.
-
-  * Apply fix so passenger-status works - useful for debugging.
+  * Disable Apache PrivateTmp so passenger error files can be found where
+    passenger reports they can be found (i.e. /tmp) - untracked bug.
 
   * Configuration console (confconsole) - v2.1.6:
     - Let's Encrypt/Dehydrated - bugfix cron failure - closes #1962.
@@ -26,7 +20,7 @@ turnkey-canvas-18.1 (1) turnkey; urgency=low
 
   * Reduce log noise by creating ntpsec log dir - closes #1952.
 
- -- Jeremy Davis <jeremy@turnkeylinux.org>  Sat, 06 Jul 2024 11:31:36 +0000
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Thu, 12 Sep 2024 07:35:16 +0000
 
 turnkey-canvas-18.0 (1) turnkey; urgency=low
 
@@ -204,7 +198,7 @@ turnkey-canvas-16.0 (1) turnkey; urgency=low
   * Repaired Canvas RCE API service for running with a domain.
 
   * Update included NodeJS to 10.x (10.20.1).
-      
+
   * Note: Please refer to turnkey-core's changelog for changes common to all
     appliances. Here we only describe changes specific to this appliance.
 
@@ -217,7 +211,7 @@ turnkey-canvas-15.3 (1) turnkey; urgency=low
   * Include Canvas RCE API service run with Passenger - closes #1319.
 
   * Update included NodeJS to 10.x (10.15.3).
-  
+
   * Note: Please refer to turnkey-core's changelog for changes common to all
     appliances. Here we only describe changes specific to this appliance.
 
@@ -231,7 +225,7 @@ turnkey-canvas-15.2 (1) turnkey; urgency=low
 
   * Include Canvas logrotate.d script - closes #1279.
     [ Zhenya Hvorostian ]
-  
+
   * Note: Please refer to turnkey-core's changelog for changes common to all
     appliances. Here we only describe changes specific to this appliance.
 
@@ -240,27 +234,27 @@ turnkey-canvas-15.2 (1) turnkey; urgency=low
 turnkey-canvas-15.1 (1) turnkey; urgency=low
 
   * Install latest Canvas LTS stable from upstream git repo.
-  
+
   * Update yarn version to 1.10.1.
 
   * Secure yarn apt repo.
-  
+
   * Note: Please refer to turnkey-core's changelog for changes common to all
     appliances. Here we only describe changes specific to this appliance.
-  
+
  -- Zhenya Hvorostian <zhenya@turnkeylinux.org>  Fri, 23 Nov 2018 11:48:21 +0300
 
 turnkey-canvas-15.0 (1) turnkey; urgency=low
 
   * Install latest Canvas LTS stable from upstream git repo.
-  
+
   * Update yarn version to latest.
-  
+
   * Change Node.js version to 8.12.0.
 
   * Note: Please refer to turnkey-core's changelog for changes common to all
     appliances. Here we only describe changes specific to this appliance.
-  
+
  -- Zhenya Hvorostian <zhenya@turnkeylinux.org> Sun, 24 Sep 2018 21:33:10 +0300
 
 turnkey-canvas-14.2 (1) turnkey; urgency=low
@@ -343,7 +337,7 @@ turnkey-canvas-12.1 (1) turnkey; urgency=low
 
   * Canvas:
 
-    - Upgraded to latest version of Canvas - cloned from upstream git repo 
+    - Upgraded to latest version of Canvas - cloned from upstream git repo
       as recommended providing an easy upgrade path.
     - Fixed automated jobs daemon configuration and enabled (bugfix).
     - Set outgoing mail defaults to tls, disable for local postfix (bugfix).
