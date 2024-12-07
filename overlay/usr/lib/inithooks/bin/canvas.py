@@ -13,12 +13,10 @@ import getopt
 import hashlib
 import random
 import string
-import psycopg2
 import subprocess
 
 from libinithooks import inithooks_cache
 from libinithooks.dialog_wrapper import Dialog
-
 
 def usage(s=None):
     if s:
@@ -27,9 +25,7 @@ def usage(s=None):
     print(__doc__, file=sys.stderr)
     sys.exit(1)
 
-
 DEFAULT_DOMAIN = "www.example.com"
-
 
 def main():
     try:
@@ -82,53 +78,40 @@ def main():
 
     inithooks_cache.write('APP_DOMAIN', domain)
 
-    salt = "".join(random.choice(string.ascii_letters) for line in range(20))
+    salt = "".join(random.choice(string.ascii_letters) for _ in range(20))
     hash = password + salt
-    for i in range(20):
+
+    for _ in range(20):
         hash = hashlib.sha512(hash.encode('utf-8')).hexdigest()
 
-    access_token = "".join(random.choice(string.ascii_letters)
-                           for line in range(20))
+    access_token = "".join(random.choice(string.ascii_letters) for _ in range(20))
 
-    conn = psycopg2.connect("dbname=canvas_production user=root")
-    c = conn.cursor()
-    c.execute('UPDATE users SET name=%s, sortable_name=%s WHERE id=1;',
-              (email, email))
-    c.execute('UPDATE pseudonyms SET unique_id=%s, crypted_password=%s, password_salt=%s, single_access_token=%s WHERE user_id=1;',
-              (email, hash, salt, access_token))
-    c.execute('UPDATE communication_channels SET path=%s WHERE id=1;',
-              (email, ))
-    conn.commit()
-    c.close()
-    conn.close()
+    stmts = [
+        "UPDATE communication_channels SET path='%s' WHERE id=1;" % (email),
+        "UPDATE users SET name='%s', sortable_name='%s' WHERE id=1;" % (email, email),
+        "UPDATE pseudonyms SET unique_id='%s', crypted_password='%s', password_salt='%s', single_access_token='%s' WHERE user_id=1;" % (email, hash, salt, access_token),
+    ]
 
-    config = "/var/www/canvas/config/outgoing_mail.yml"
-    subprocess.run(["sed", "-ri",
-                    's|domain:.*|domain: "%s"|' % domain,
-                    config])
-    subprocess.run(["sed", "-ri",
-                    's|outgoing_address:.*|outgoing_address: "%s"|' % email,
-                    config])
+    for stmt in stmts:
+        subprocess.run(["podman", "exec", "db", "psql", "-U", "canvas", "canvas_production", "-c", stmt])
 
-    config = "/var/www/canvas/config/dynamic_settings.yml"
-    subprocess.run(["sed", "-ri",
-                    's|app-host:.*|app-host: "%s:3000"|' % domain,
-                    config])
+    root = "/var/www/canvas/config/"
 
-    config = "/var/www/canvas/config/domain.yml"
-    subprocess.run(["sed", "-ri",
-                    's|domain:.*|domain: "%s"|' % domain,
-                    config])
+    config = root + "outgoing_mail.yml"
+    subprocess.run(["sed", "-ri", 's|domain:.*|domain: "%s"|' % domain, config])
+    subprocess.run(["sed", "-ri", 's|outgoing_address:.*|outgoing_address: "%s"|' % email, config])
 
-    config = "/var/www/canvas/config/initializers/outgoing_mail.rb"
-    subprocess.run(["sed", "-ri",
-                    's|:domain => .*|:domain => "%s",|' % domain,
-                    config])
+    config = root + "dynamic_settings.yml"
+    subprocess.run(["sed", "-ri", 's|app-host:.*|app-host: "%s:3000"|' % domain, config])
+
+    config = root + "domain.yml"
+    subprocess.run(["sed", "-ri", 's|domain:.*|domain: "%s"|' % domain, config])
+
+    config = root + "initializers/outgoing_mail.rb"
+    subprocess.run(["sed", "-ri", 's|:domain => .*|:domain => "%s",|' % domain, config])
 
     print("Restarting services; please wait...")
-    for service in ['canvas_init', 'apache2']:
-        subprocess.run(['systemctl', 'restart', service])
-
+    subprocess.run(['podman', 'restart', 'canvas'])
 
 if __name__ == "__main__":
     main()

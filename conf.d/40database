@@ -1,8 +1,0 @@
-#!/bin/bash -ex
-
-source /usr/local/src/canvas.conf
-
-service postgresql start
-
-su postgres -c "createdb --owner $DB_USER -EUTF8 $DB_QUEUE"
-su postgres -c "psql postgres" <<< "alter user $DB_USER with encrypted password '$DB_PASS';"

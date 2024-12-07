@@ -1,0 +1,128 @@
+#!/bin/bash -ex
+# initialize Canvas pod
+
+. /etc/default/inithooks
+
+[ -e "$INITHOOKS_CONF" ] && . "$INITHOOKS_CONF"
+
+SRC='/usr/local/src'
+WWW='/var/www/canvas'
+
+echo 'Loading Podman images...'
+
+# Approximate peak RAM usage on live:
+# - tar with or without compression: 2x
+#    .tar.X (disk) -> .tar (RAM)
+#    .tar   (disk) -> .tar (RAM)
+#    .tar   (RAM)  -> dir  (RAM)
+# - dir: 1x
+#    dir (disk) -> dir (RAM)
+# this is due to Podman keeping a copy of the tarball when loading.
+
+if mount | grep -q 'on / .*live'; then
+  # grow tmpfs
+  mount -o remount,size=90% /run/live/overlay
+
+  MAX="$(du -sm "$SRC/images" | sort -rh | head -1 | cut -f1)"
+  FREE="$(free -m | head -2 | tail -1 | awk '{print $7;}')"
+
+  echo "Running live -- checking memory usage."
+  echo "Max memory used for images will be ${MAX}M, ${FREE}M is currently free."
+
+  if [[ "$MAX" -ge "$FREE" ]]; then
+    echo "max ${MAX}M >= free ${FREE}M!"
+    echo "Install to disk or add more RAM."
+    echo "Cannot run live on this system, exiting."
+    exit 1
+  else
+    echo 'This is fine.'
+  fi
+fi
+
+# load and clean up images
+for i in "$SRC/images"/*; do
+  podman load -qi "${i}"
+
+  # restore old tag for sane updates later
+  TAG="$(basename "$i")"
+  ORIG_TAG="$(jq -r '.manifests | .[] | .annotations | .[]' "${i}/index.json")"
+  podman tag "$TAG" "$ORIG_TAG" # restores original registry tag
+  podman rmi "localhost$i:latest" # removes just the one local tag
+  rm -r "${i}"
+done
+
+echo 'Images loaded:'
+podman images
+
+# set up pod and db
+echo 'Setting up pod...'
+
+DB_CFG="$WWW/config/database.yml"
+
+DB_USER="$(grep -Po 'username: \K.*$' "$DB_CFG")"
+DB_NAME="$(grep -Po 'database: \K.*$' "$DB_CFG")"
+DB_PASS="$(grep -Po 'password: \K.*$' "$DB_CFG")"
+
+PG_VOLUME='pgdata:/var/lib/postgresql/data'
+PG_MAJOR="$(podman image inspect canvas | grep -m1 -Po 'POSTGRES_CLIENT=\K\d+')"
+PG_IMAGE="postgres:$PG_MAJOR-alpine"
+
+podman volume create pgdata
+podman pod create --name canvas-pod -p 80:80 -p 443:443 -p 3000:3000
+
+pod() {
+  op="$1"
+  shift
+
+  case "$op" in
+    run)
+      set -- --rm "$@"
+      ;;
+    create)
+      set -- --replace --restart always "$@"
+      ;;
+  esac
+
+  set -- "$op" --pod canvas-pod "$@"
+  podman "$@"
+}
+
+# create db
+echo 'Setting up databases...'
+
+pod run -d \
+  --name db \
+  -v "$PG_VOLUME" \
+  -e "POSTGRES_USER=$DB_USER" \
+  -e "POSTGRES_DB=$DB_NAME" \
+  -e "POSTGRES_PASSWORD=$DB_PASS" \
+  "$PG_IMAGE"
+
+CFG_VOLUME="$WWW/config:/usr/src/app/config:U"
+
+# initialize db
+pod run \
+  -e 'CANVAS_LMS_ADMIN_EMAIL=admin@example.com' \
+  -e 'CANVAS_LMS_ADMIN_PASSWORD=turnkey1' \
+  -e 'CANVAS_LMS_ACCOUNT_NAME=TurnKey Canvas' \
+  -e 'CANVAS_LMS_STATS_COLLECTION=opt-out' \
+  -v "$CFG_VOLUME" \
+  canvas bundle exec rake db:initial_setup
+
+# recreate db with no envvars
+pod create --name db -v "$PG_VOLUME" "$PG_IMAGE"
+
+# create redis 
+pod create --name redis redis:alpine
+
+# create nginx reverse proxy
+echo 'Setting up nginx...'
+
+NGX_VOLUME="/etc/nginx/conf.d:/etc/nginx/conf.d:ro"
+TLS_VOLUME="/etc/ssl/private:/etc/ssl/private:ro"
+
+pod create --name nginx -v "$NGX_VOLUME" -v "$TLS_VOLUME" nginx:alpine
+
+podman pod start canvas-pod
+
+# canvas and canvas-rce-api are created later in 20regen-canvas-secrets with fresh secrets
