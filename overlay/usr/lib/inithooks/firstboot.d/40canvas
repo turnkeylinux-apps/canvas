@@ -3,6 +3,8 @@
 
 . /etc/default/inithooks
 
-[ -e $INITHOOKS_CONF ] && . $INITHOOKS_CONF
+[ -e "$INITHOOKS_CONF" ] && . "$INITHOOKS_CONF"
 
-$INITHOOKS_PATH/bin/canvas.py --pass="$APP_PASS" --email="$APP_EMAIL" --domain="$APP_DOMAIN"
+printf '%s' "$APP_PASS" \
+    | "$INITHOOKS_PATH/bin/canvas.py" --pass-stdin \
+        --email="$APP_EMAIL" --domain="$APP_DOMAIN"

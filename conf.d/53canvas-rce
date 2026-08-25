@@ -3,12 +3,24 @@
 # Add RCE_API Apache port to default ports conf file
 sed -i "/Listen 443/ a \\\\tListen 3000" /etc/apache2/ports.conf
 
-git clone --depth=1 https://github.com/instructure/canvas-rce-api.git /var/www/canvas-rce-api
+source /usr/local/src/canvas.conf
 
-cd /var/www/canvas-rce-api
-npm i --production
+RCE_ROOT=/var/www/canvas-rce-api
+ARCHIVE=/usr/local/src/canvas-rce-$RCE_COMMIT.tar.gz
+URL=https://github.com/instructure/canvas-rce-api/archive/$RCE_COMMIT.tar.gz
+curl_args=(-fsSL)
+[[ -z ${FAB_HTTP_PROXY:-} ]] || curl_args+=(--proxy "$FAB_HTTP_PROXY")
+curl "${curl_args[@]}" "$URL" -o "$ARCHIVE"
+echo "$RCE_SHA256  $ARCHIVE" | sha256sum --check --status
+
+install -d "$RCE_ROOT"
+tar -xzf "$ARCHIVE" --strip-components=1 -C "$RCE_ROOT"
+rm -f "$ARCHIVE"
+
+cd "$RCE_ROOT"
+npm ci --omit=dev
 cp .env.example .env
-chown -R www-data:www-data tmp
+install -d -o www-data -g www-data tmp
 
 sed -i "s|^PORT=.*|PORT=3000|" .env
 sed -i "s|NODE_ENV=.*|NODE_ENV=production|" .env

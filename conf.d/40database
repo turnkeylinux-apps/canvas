@@ -5,4 +5,8 @@ source /usr/local/src/canvas.conf
 service postgresql start
 
 su postgres -c "createdb --owner $DB_USER -EUTF8 $DB_QUEUE"
-su postgres -c "psql postgres" <<< "alter user $DB_USER with encrypted password '$DB_PASS';"
+set +x
+su postgres -c "psql --set ON_ERROR_STOP=1 postgres" <<EOF
+ALTER ROLE $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASS';
+EOF
+set -x

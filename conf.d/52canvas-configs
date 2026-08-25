@@ -78,6 +78,8 @@ cat >$WEBROOT/config/security.yml<<EOF
 production: &default
   # replace this with a random string of at least 20 characters
   encryption_key: 1234512345123451234512345123451234512345123451234512345
+  jwt_encryption_keys:
+    - 1234512345123451234512345123451234512345123451234512345123451234
   lti_iss: 'https://canvas.instructure.com'
 EOF
 

@@ -2,6 +2,7 @@
 #include <turnkey/rails-pgsql>
 
 /* canvas related (not in rails plan) */
+git
 libyaml-dev
 libpq-dev
 libxmlsec1
@@ -10,6 +11,11 @@ zlib1g-dev
 imagemagick
 redis-server
 libsqlite3-dev
-libmariadb-dev
-python3-psycopg2
-libidn11-dev /* for ruby-idn */
+libidn-dev /* for ruby-idn */
+libicu-dev
+parallel
+unzip
+pbzip2
+rsync
+yarnpkg
+npm

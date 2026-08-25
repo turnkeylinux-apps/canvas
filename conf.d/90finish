@@ -1,15 +1,19 @@
 #!/bin/bash -ex
 
 WEBROOT=/var/www/canvas
+RCE_ROOT=/var/www/canvas-rce-api
+source /usr/local/src/canvas.conf
 
 BUNDLE_PATH="$WEBROOT/vendor/bundle"
 GEM_PATH="$(cat "$WEBROOT/config/GEM_HOME")"
 
 if [[ -z "$BUNDLE_PATH" ]] || [[ ! -d "$BUNDLE_PATH" ]]; then
     echo "Fatal: BUNDLE_PATH ($BUNDLE_PATH) does not exist"
+    exit 1
 fi
 if [[ -z "$GEM_PATH" ]] || [[ ! -d "$GEM_PATH" ]]; then
     echo "Fatal: GEM_PATH ($GEM_PATH)  does not exist"
+    exit 1
 fi
 
 APACHE_CONF=/etc/apache2/sites-available/canvas.conf
@@ -20,7 +24,17 @@ sed -i "/GEM_PATH/ s|__GEM_PATH__|$GEM_PATH|" "$APACHE_CONF"
 rm -rf /var/log/canvas
 ln -s $WEBROOT/log /var/log/canvas
 
-chown -R www-data:www-data /var/www/canvas/{config,log}
+chown -R root:www-data "$WEBROOT/config"
+chown root:www-data "$WEBROOT/Gemfile.lock" "$WEBROOT/config.ru" \
+    "$WEBROOT/config/environment.rb"
+find "$WEBROOT/config" -type d -exec chmod 0750 {} \;
+find "$WEBROOT/config" -type f -name '*.yml' -exec chmod 0440 {} \;
+chown -R www-data:www-data "$WEBROOT/log" "$WEBROOT/tmp"
+
+chown -R root:root "$RCE_ROOT"
+chown -R www-data:www-data "$RCE_ROOT/tmp"
+chown root:www-data "$RCE_ROOT/.env"
+chmod 0440 "$RCE_ROOT/.env"
 
 # fix for github.com/phusion/passenger/wiki/Debugging-application-startup-problems
 echo "PassengerStartTimeout 300" >> /etc/apache2/mods-available/passenger.conf
@@ -29,6 +43,21 @@ echo "PassengerStartTimeout 300" >> /etc/apache2/mods-available/passenger.conf
 echo "PassengerInstanceRegistryDir /run/passenger-instreg" >> /etc/apache2/mods-available/passenger.conf
 # see also /etc/tmpfiles.d/passenger.conf in overlay
 
-chmod 400 $WEBROOT/config/cache_store.yml
+install -d /usr/local/share/turnkey-canvas
+cat > /usr/local/share/turnkey-canvas/source <<EOF
+version=$CANVAS_VERSION
+canvas_channel=prod
+canvas_commit=$CANVAS_COMMIT
+canvas_tree=$CANVAS_TREE
+canvas_archive_sha256=$CANVAS_SHA256
+rce_channel=master
+rce_commit=$RCE_COMMIT
+rce_tree=$RCE_TREE
+rce_archive_sha256=$RCE_SHA256
+ruby=$(ruby -e 'print RUBY_VERSION')
+rails=$(cd "$WEBROOT" && BUNDLE_PATH=vendor/bundle bundle exec rails --version | awk '{print $2}')
+node=$(node --version)
+EOF
+chmod 0644 /usr/local/share/turnkey-canvas/source
 
 rm -f /usr/local/src/canvas.conf

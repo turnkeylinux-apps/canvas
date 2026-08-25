@@ -1,3 +1,20 @@
+turnkey-canvas-19.0 (1) turnkey; urgency=low
+
+  * Install the official Canvas production source at a verified commit with
+    its matching Ruby 3.4, Rails 8 and Node.js 20 dependency contract.
+
+  * Update Canvas Rich Content Editor API to a verified official source
+    commit.
+
+  * Add a supervised updater for the official Canvas production channel.
+
+  * Add v19 acceptance coverage for firstboot web login, a course create/read
+    round trip, PostgreSQL, Redis, background jobs and compiled assets.
+
+  * Upgrade the base distribution to Debian 13 Trixie.
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Tue, 25 Aug 2026 20:55:00 +0000
+
 turnkey-canvas-18.1 (1) turnkey; urgency=low
 
   * Install latest Canvas LTS stable (prod branch), Canvas RCE API and required
@@ -413,4 +430,3 @@ turnkey-canvas-12.0 (1) turnkey; urgency=low
     appliances. Here we only describe changes specific to this appliance.
 
  -- Alon Swartz <alon@turnkeylinux.org>  Wed, 01 Aug 2012 08:00:00 +0200
-

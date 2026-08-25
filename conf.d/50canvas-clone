@@ -2,15 +2,18 @@
 
 source /usr/local/src/canvas.conf
 
-# download and set branch to version
-URL="https://github.com/instructure/canvas-lms.git"
+# Install the exact official production source and verify its archive.
+ARCHIVE=/usr/local/src/canvas-$CANVAS_COMMIT.tar.gz
+URL=https://github.com/instructure/canvas-lms/archive/$CANVAS_COMMIT.tar.gz
+curl_args=(-fsSL)
+[[ -z ${FAB_HTTP_PROXY:-} ]] || curl_args+=(--proxy "$FAB_HTTP_PROXY")
+curl "${curl_args[@]}" "$URL" -o "$ARCHIVE"
+echo "$CANVAS_SHA256  $ARCHIVE" | sha256sum --check --status
 
-[ "$FAB_HTTP_PROXY" ] && export HTTP_PROXY=$FAB_HTTP_PROXY
-git clone $URL $WEBROOT --depth=1 -b prod
-unset HTTP_PROXY
-
-cd $WEBROOT
+install -d "$WEBROOT"
+tar -xzf "$ARCHIVE" --strip-components=1 -C "$WEBROOT"
+rm -f "$ARCHIVE"
 
 # tweak footer
 CONF=$WEBROOT/app/views/layouts/application.html.erb
-sed -i "s|</footer>|<div id='turnkey-credit' style='text-align:center;padding-top:20px;'><a href='https://www.turnkeylinux.org/canvas'>Canvas Appliance</a> - Powered by <a href='https://www.turnkeylinux.org'>TurnKey Linux</a></div>\n    </footer>|" $CONF
+sed -i "s|</footer>|<div id='turnkey-credit' style='text-align:center;padding-top:20px;'><a href='https://www.turnkeylinux.org/canvas'>Canvas Appliance</a> - Powered by <a href='https://www.turnkeylinux.org'>TurnKey Linux</a></div>\n    </footer>|" "$CONF"

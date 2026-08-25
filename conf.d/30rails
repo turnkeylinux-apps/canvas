@@ -3,9 +3,11 @@
 source /usr/local/src/canvas.conf
 
 # get db_pass set by common/rails and update canvas.conf
+set +x
 DB_PASS=$(grep password: $WEBROOT/config/database.yml | head -n 1 | awk '{print $2}')
+[[ -n $DB_PASS ]]
 sed -i "s|DB_PASS=.*|DB_PASS=$DB_PASS|" /usr/local/src/canvas.conf
+set -x
 
 # remove common/rails webroot
 rm -rf $WEBROOT
-
