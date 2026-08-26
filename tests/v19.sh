@@ -21,6 +21,47 @@ require_contains() {
     [[ $text == *"$expected"* ]] || fail "$context did not contain: $expected"
 }
 
+html_input_value() {
+    local name=$1
+    python3 -c '
+from html.parser import HTMLParser
+import sys
+
+class InputParser(HTMLParser):
+    value = None
+
+    def handle_starttag(self, tag, attrs):
+        values = dict(attrs)
+        if tag == "input" and values.get("name") == sys.argv[1]:
+            self.value = values.get("value")
+
+parser = InputParser()
+parser.feed(sys.stdin.read())
+if parser.value is None:
+    raise SystemExit(1)
+print(parser.value)
+' "$name"
+}
+
+cookie_value() {
+    local cookie_file=$1
+    local name=$2
+    python3 -c '
+import sys
+from urllib.parse import unquote
+
+value = None
+with open(sys.argv[1], encoding="utf-8") as cookie_file:
+    for line in cookie_file:
+        fields = line.rstrip("\n").split("\t")
+        if len(fields) == 7 and fields[5] == sys.argv[2]:
+            value = fields[6]
+if value is None:
+    raise SystemExit(1)
+print(unquote(value))
+' "$cookie_file" "$name"
+}
+
 source_value() {
     local key=$1
     sed -n "s/^${key}=//p" "$SOURCE_FILE" | head -n 1
@@ -89,16 +130,6 @@ grep -Fq 'exec su -s /bin/bash www-data' "$APP_ROOT/script/canvas_init" \
 pgrep -u www-data -f 'delayed_job|inst_jobs' >/dev/null \
     || fail "Canvas background job workers are not running"
 
-login_page=
-for _ in $(seq 1 60); do
-    if login_page=$(curl --insecure -fsSL --max-time 30 \
-            "$BASE_URL/login/canvas" 2>/dev/null); then
-        break
-    fi
-    sleep 5
-done
-require_contains "$login_page" "Canvas" "Canvas HTTPS login page"
-
 cookie=$(mktemp)
 pass_file=$(mktemp)
 trap 'rm -f "$cookie" "$pass_file"' EXIT
@@ -106,8 +137,21 @@ chmod 0600 "$cookie" "$pass_file"
 printf '%s' "$TKL_TEST_APP_PASS" > "$pass_file"
 curl_args=(--insecure -fsS --max-time 60 -c "$cookie" -b "$cookie")
 
+login_page=
+for _ in $(seq 1 60); do
+    if login_page=$(curl "${curl_args[@]}" -L \
+            "$BASE_URL/login/canvas" 2>/dev/null); then
+        break
+    fi
+    sleep 5
+done
+require_contains "$login_page" "Canvas" "Canvas HTTPS login page"
+login_csrf_token=$(html_input_value authenticity_token <<<"$login_page") \
+    || fail "Canvas login form did not contain an authenticity token"
+
 curl "${curl_args[@]}" -L "$BASE_URL/login/canvas" \
     -H "Referer: $BASE_URL/login/canvas" \
+    --data-urlencode "authenticity_token=$login_csrf_token" \
     --data-urlencode "pseudonym_session[unique_id]=$LOGIN_EMAIL" \
     --data-urlencode "pseudonym_session[password]@$pass_file" \
     --data-urlencode 'pseudonym_session[remember_me]=0' \
@@ -115,9 +159,8 @@ curl "${curl_args[@]}" -L "$BASE_URL/login/canvas" \
 
 dashboard=$(curl "${curl_args[@]}" "$BASE_URL/")
 require_contains "$dashboard" "Dashboard" "authenticated Canvas dashboard"
-csrf_tag=$(grep -o '<meta[^>]*name="csrf-token"[^>]*>' <<<"$dashboard" | head -n 1)
-csrf_token=$(sed -n 's/.*content="\([^"]*\)".*/\1/p' <<<"$csrf_tag")
-[[ -n $csrf_token ]] || fail "authenticated Canvas page did not contain a CSRF token"
+csrf_token=$(cookie_value "$cookie" _csrf_token) \
+    || fail "authenticated Canvas session did not contain a CSRF token"
 
 course_name='TurnKey Canvas acceptance course'
 course_code='TKL-V19'
