@@ -51,13 +51,38 @@ reset_compatible_fixture_redis() {
         || fail "compatible Canvas fixture Redis cache remained populated"
 }
 
+validate_compatible_fixture_rev_manifest() {
+    local manifest=$1
+
+    [[ -s $manifest ]] \
+        || fail "compatible Canvas fixture rev manifest was missing"
+    python3 - "$manifest" <<'PY' \
+        || fail "compatible Canvas fixture rev manifest was invalid"
+import json
+import re
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as manifest_file:
+    manifest = json.load(manifest_file)
+
+if not isinstance(manifest, dict) or not manifest:
+    raise SystemExit(1)
+if not all(isinstance(key, str) and isinstance(value, str)
+           for key, value in manifest.items()):
+    raise SystemExit(1)
+if not any(re.search(r"-[0-9a-f]{8,}\.", value)
+           for value in manifest.values()):
+    raise SystemExit(1)
+PY
+}
+
 exercise_real_updater_apply() {
     local expected_canvas=$1
     local expected_canvas_tree=$2
     local expected_rce=$3
     local expected_rce_tree=$4
     local stage canvas_archive rce_archive old_canvas old_rce prior_bundle
-    local baseline_rakelib
+    local prior_yarn_cache prior_rev_manifest baseline_rakelib
     local branch_head tag_head config_hash rce_env_hash
     local prior_check apply_log apply_output backup_root db_backup files_backup
     local update_post_check
@@ -172,6 +197,18 @@ PY
     prior_bundle=$stage/prior-bundle
     bundle config set --local path "$prior_bundle"
     BUNDLE_PATH=$prior_bundle bundle install
+    export RAILS_ENV=production
+    export BUNDLE_PATH=$prior_bundle
+    prior_yarn_cache=$stage/prior-yarn-cache
+    yarn install --frozen-lockfile --network-timeout 1000000 \
+        --cache-folder "$prior_yarn_cache"
+    COMPILE_ASSETS_API_DOCS=0 COMPILE_ASSETS_CSS=0 \
+        COMPILE_ASSETS_STYLEGUIDE=0 COMPILE_ASSETS_BUILD_JS=0 \
+        COMPILE_ASSETS_BRAND_CONFIGS=0 COMPILE_ASSETS_NPM_INSTALL=0 \
+        RAILS_LOAD_ALL_LOCALES=0 SKIP_SOURCEMAPS=1 \
+        bundle exec rails canvas:compile_assets
+    prior_rev_manifest=$APP_ROOT/public/dist/rev-manifest.json
+    validate_compatible_fixture_rev_manifest "$prior_rev_manifest"
     service postgresql start
     service redis-server start
     su postgres -c 'dropdb --if-exists canvas_production'
@@ -179,8 +216,6 @@ PY
     su postgres -c 'createdb --owner canvas -EUTF8 canvas_production'
     su postgres -c 'createdb --owner canvas -EUTF8 canvas_queue'
     reset_compatible_fixture_redis
-    export RAILS_ENV=production
-    export BUNDLE_PATH=$prior_bundle
     export CANVAS_LMS_ADMIN_EMAIL=$LOGIN_EMAIL
     export CANVAS_LMS_ADMIN_PASSWORD=$TKL_TEST_APP_PASS
     export CANVAS_LMS_ACCOUNT_NAME='TurnKey Canvas updater acceptance'
