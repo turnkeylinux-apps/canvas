@@ -45,14 +45,14 @@ exercise_real_updater_apply() {
     local expected_canvas_tree=$2
     local expected_rce=$3
     local expected_rce_tree=$4
-    local stage canvas_archive rce_archive old_canvas old_rce
+    local stage canvas_archive rce_archive old_canvas old_rce prior_bundle
     local branch_head tag_head config_hash rce_env_hash
     local prior_check apply_log apply_output backup_root db_backup files_backup
     local update_post_check
     local login_page login_csrf_token dashboard csrf_token
     local post_course_name post_course_code post_course_json post_course_id
     local post_course_read post_course_page db_courses asset_path asset_size
-    local rce_body rce_readiness
+    local rce_body rce_readiness prior_rails_version
 
     [[ $expected_canvas = 44bfdc264d5fe6a942ebdb5f10a0eb63ee04df3a ]] \
         || fail "updater apply target is not the accepted Canvas production commit"
@@ -154,8 +154,9 @@ PY
         "$old_rce/" "$RCE_ROOT/"
 
     cd "$APP_ROOT"
-    bundle config set --local path vendor/bundle
-    bundle install
+    prior_bundle=$stage/prior-bundle
+    bundle config set --local path "$prior_bundle"
+    BUNDLE_PATH=$prior_bundle bundle install
     service postgresql start
     service redis-server start
     su postgres -c 'dropdb --if-exists canvas_production'
@@ -163,7 +164,7 @@ PY
     su postgres -c 'createdb --owner canvas -EUTF8 canvas_production'
     su postgres -c 'createdb --owner canvas -EUTF8 canvas_queue'
     export RAILS_ENV=production
-    export BUNDLE_PATH=vendor/bundle
+    export BUNDLE_PATH=$prior_bundle
     export CANVAS_LMS_ADMIN_EMAIL=$LOGIN_EMAIL
     export CANVAS_LMS_ADMIN_PASSWORD=$TKL_TEST_APP_PASS
     export CANVAS_LMS_ACCOUNT_NAME='TurnKey Canvas updater acceptance'
@@ -191,6 +192,13 @@ PY
         "$APP_ROOT/tmp/files/turnkey-updater-acceptance.txt"
     config_hash=$(config_manifest_sha256)
     rce_env_hash=$(sha256sum "$RCE_ROOT/.env" | awk '{print $1}')
+    prior_rails_version=$(bundle exec rails --version | awk '{print $2}')
+
+    # The real updater must see the production bundle location from the prior
+    # installation, not the disposable dependency path used to construct its
+    # database fixture.
+    bundle config set --local path vendor/bundle
+    unset BUNDLE_PATH
 
     cat > "$SOURCE_FILE" <<EOF
 version=$PREVIOUS_CANVAS_VERSION
@@ -208,7 +216,7 @@ rce_runtime_dependency_fix=local-patch
 rce_runtime_patch_sha256=$rce_runtime_patch_sha256
 rce_passenger_sha256=$rce_passenger_sha256
 ruby=$(ruby -e 'print RUBY_VERSION')
-rails=$(bundle exec rails --version | awk '{print $2}')
+rails=$prior_rails_version
 node=$(node --version)
 yarn=$(yarn --version)
 yarn_source=official-yarn-apt
