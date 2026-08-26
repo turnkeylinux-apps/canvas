@@ -17,6 +17,25 @@ install -d "$RCE_ROOT"
 tar -xzf "$ARCHIVE" --strip-components=1 -C "$RCE_ROOT"
 rm -f "$ARCHIVE"
 
+# The pinned RCE tree imports dev-null for request logging at runtime but
+# classifies it as a development dependency. Correct the official lock
+# metadata so the production-only install includes the already locked tarball.
+RUNTIME_PATCH=/usr/local/src/canvas_rce_runtime_dependency.patch
+echo "$RCE_RUNTIME_PATCH_SHA256  $RUNTIME_PATCH" | sha256sum --check --status
+git -C "$RCE_ROOT" apply "$RUNTIME_PATCH"
+install -D -m 0644 "$RUNTIME_PATCH" \
+    /usr/local/share/turnkey-canvas/canvas_rce_runtime_dependency.patch
+rm -f "$RUNTIME_PATCH"
+
+# Passenger accepts a startup file but not npm start's --import option. Use an
+# appliance-owned wrapper to load dotenv and instrumentation before app.js.
+PASSENGER_START=/usr/local/src/canvas_rce_passenger.js
+echo "$RCE_PASSENGER_SHA256  $PASSENGER_START" | sha256sum --check --status
+install -m 0644 "$PASSENGER_START" "$RCE_ROOT/turnkey-passenger.js"
+install -m 0644 "$PASSENGER_START" \
+    /usr/local/share/turnkey-canvas/canvas_rce_passenger.js
+rm -f "$PASSENGER_START"
+
 cd "$RCE_ROOT"
 npm ci --omit=dev
 cp .env.example .env

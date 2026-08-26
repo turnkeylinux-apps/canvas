@@ -11,6 +11,7 @@ RCE_API=https://api.github.com/repos/instructure/canvas-rce-api
 ASSET_PATH=ui/features/discovery_page/react/components/ConfigureModal.tsx
 ASSET_BROKEN_IMPORT="import {showFlashAlert} from '@instructure/platform-alerts'"
 ASSET_FIXED_IMPORT="import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'"
+RCE_LOG_PATH=app/middleware/requestLogs.js
 
 usage() {
     echo "usage: turnkey-canvas-update --check | --apply [--dry-run]" >&2
@@ -73,6 +74,9 @@ rce_commit=$(source_value rce_commit)
 rce_tree=$(source_value rce_tree)
 canvas_asset_patch_commit=$(source_value canvas_asset_patch_commit)
 canvas_asset_patch_sha256=$(source_value canvas_asset_patch_sha256)
+rce_runtime_dependency_fix=$(source_value rce_runtime_dependency_fix)
+rce_runtime_patch_sha256=$(source_value rce_runtime_patch_sha256)
+rce_passenger_sha256=$(source_value rce_passenger_sha256)
 [[ $installed =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || {
     echo "Installed Canvas version is invalid" >&2
     exit 1
@@ -91,6 +95,27 @@ done
 asset_patch=/usr/local/share/turnkey-canvas/canvas_platform_alerts.patch
 echo "$canvas_asset_patch_sha256  $asset_patch" | sha256sum --check --status || {
     echo "Canvas asset patch integrity check failed" >&2
+    exit 1
+}
+[[ $rce_runtime_patch_sha256 =~ ^[0-9a-f]{64}$ && \
+    $rce_passenger_sha256 =~ ^[0-9a-f]{64}$ ]] || {
+    echo "Installed Canvas RCE compatibility identity is invalid" >&2
+    exit 1
+}
+[[ $rce_runtime_dependency_fix = local-patch || \
+    $rce_runtime_dependency_fix = upstream ]] || {
+    echo "Installed Canvas RCE runtime dependency state is invalid" >&2
+    exit 1
+}
+rce_runtime_patch=/usr/local/share/turnkey-canvas/canvas_rce_runtime_dependency.patch
+rce_passenger=/usr/local/share/turnkey-canvas/canvas_rce_passenger.js
+echo "$rce_runtime_patch_sha256  $rce_runtime_patch" \
+    | sha256sum --check --status || {
+    echo "Canvas RCE runtime patch integrity check failed" >&2
+    exit 1
+}
+echo "$rce_passenger_sha256  $rce_passenger" | sha256sum --check --status || {
+    echo "Canvas RCE Passenger launcher integrity check failed" >&2
     exit 1
 }
 
@@ -112,6 +137,48 @@ else
     echo "Official Canvas source has an unsupported asset import" >&2
     exit 1
 fi
+rce_package=$(curl -fsSL \
+    "https://raw.githubusercontent.com/instructure/canvas-rce-api/$candidate_rce/package.json")
+rce_lock=$(curl -fsSL \
+    "https://raw.githubusercontent.com/instructure/canvas-rce-api/$candidate_rce/package-lock.json")
+rce_logs=$(curl -fsSL \
+    "https://raw.githubusercontent.com/instructure/canvas-rce-api/$candidate_rce/$RCE_LOG_PATH")
+rce_manifest_class=$(python3 -c '
+import json
+import sys
+
+package = json.load(sys.stdin)
+if package.get("dependencies", {}).get("dev-null"):
+    print("production")
+elif package.get("devDependencies", {}).get("dev-null"):
+    print("development")
+else:
+    print("missing")
+' <<<"$rce_package")
+rce_lock_class=$(python3 -c '
+import json
+import sys
+
+lock = json.load(sys.stdin)
+root = lock.get("packages", {}).get("", {})
+package = lock.get("packages", {}).get("node_modules/dev-null", {})
+if root.get("dependencies", {}).get("dev-null") and not package.get("dev", False):
+    print("production")
+elif root.get("devDependencies", {}).get("dev-null") and package.get("dev", False):
+    print("development")
+else:
+    print("missing")
+' <<<"$rce_lock")
+if ! grep -Eq "from [\"']dev-null[\"']" <<<"$rce_logs"; then
+    rce_dependency_fix=upstream
+elif [[ $rce_manifest_class = production && $rce_lock_class = production ]]; then
+    rce_dependency_fix=upstream
+elif [[ $rce_manifest_class = development && $rce_lock_class = development ]]; then
+    rce_dependency_fix=required
+else
+    echo "Official RCE source has an unsupported dev-null dependency state" >&2
+    exit 1
+fi
 
 status=update-available
 if [[ $canvas_commit = "$candidate" && $rce_commit = "$candidate_rce" ]]; then
@@ -127,6 +194,9 @@ if [[ $mode = --check ]]; then
         "$candidate_rce" "$candidate_rce_tree"
     printf 'asset_fix=%s\nasset_patch_commit=%s\n' \
         "$asset_fix" "$canvas_asset_patch_commit"
+    printf 'rce_dependency_fix=%s\nrce_runtime_patch_sha256=%s\n' \
+        "$rce_dependency_fix" "$rce_runtime_patch_sha256"
+    printf 'rce_passenger_sha256=%s\n' "$rce_passenger_sha256"
     printf 'channel=official-canvas-prod\nrce_channel=official-canvas-rce-master\n'
     printf 'status=%s\n' "$status"
     exit 0
@@ -139,7 +209,10 @@ if $dry_run; then
         "$candidate_rce" "$candidate_rce_tree"
     printf 'asset_fix=%s\nasset_patch_commit=%s\n' \
         "$asset_fix" "$canvas_asset_patch_commit"
-    printf 'verified=official-branch-commits-trees-and-asset-fix\nstatus=%s\n' "$status"
+    printf 'rce_dependency_fix=%s\nrce_runtime_patch_sha256=%s\n' \
+        "$rce_dependency_fix" "$rce_runtime_patch_sha256"
+    printf 'rce_passenger_sha256=%s\n' "$rce_passenger_sha256"
+    printf 'verified=official-branch-commits-trees-and-compatibility-fixes\nstatus=%s\n' "$status"
     exit 0
 fi
 
@@ -187,6 +260,9 @@ git -C "$stage/rce" fetch -q --depth 1 origin "$candidate_rce"
 git -C "$stage/rce" checkout -q --detach FETCH_HEAD
 [[ $(git -C "$stage/rce" rev-parse HEAD) = "$candidate_rce" ]]
 [[ $(git -C "$stage/rce" rev-parse 'HEAD^{tree}') = "$candidate_rce_tree" ]]
+if [[ $rce_dependency_fix = required ]]; then
+    git -C "$stage/rce" apply "$rce_runtime_patch"
+fi
 
 backup_dir=/var/backups/turnkey-canvas
 backup_id=$(date -u +%Y%m%dT%H%M%SZ)
@@ -220,6 +296,7 @@ rsync -a --delete \
     --exclude=/.env \
     --exclude=/tmp \
     "$stage/rce/" "$RCE_ROOT/"
+install -m 0644 "$rce_passenger" "$RCE_ROOT/turnkey-passenger.js"
 
 cd "$APP_ROOT"
 bundler_version=$(awk '/^BUNDLED WITH$/ {getline; gsub(/^[[:space:]]+/, ""); print; exit}' Gemfile.lock)
@@ -257,6 +334,9 @@ rce_channel=master
 rce_commit=$candidate_rce
 rce_tree=$candidate_rce_tree
 rce_archive_sha256=not-applicable-git-update
+rce_runtime_dependency_fix=$([[ $rce_dependency_fix = required ]] && echo local-patch || echo upstream)
+rce_runtime_patch_sha256=$rce_runtime_patch_sha256
+rce_passenger_sha256=$rce_passenger_sha256
 ruby=$(ruby -e 'print RUBY_VERSION')
 rails=$(cd "$APP_ROOT" && BUNDLE_PATH=vendor/bundle bundle exec rails --version | awk '{print $2}')
 node=$(node --version)

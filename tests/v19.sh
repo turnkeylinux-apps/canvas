@@ -5,6 +5,7 @@ set -euo pipefail
 : "${TKL_TEST_APP_PASS:?TKL_TEST_APP_PASS must contain the firstboot Canvas password}"
 
 APP_ROOT=/var/www/canvas
+RCE_ROOT=/var/www/canvas-rce-api
 SOURCE_FILE=/usr/local/share/turnkey-canvas/source
 BASE_URL=https://localhost
 LOGIN_EMAIL=admin@example.invalid
@@ -79,6 +80,9 @@ canvas_asset_patch_sha256=$(source_value canvas_asset_patch_sha256)
 rce_commit=$(source_value rce_commit)
 rce_tree=$(source_value rce_tree)
 rce_sha256=$(source_value rce_archive_sha256)
+rce_runtime_dependency_fix=$(source_value rce_runtime_dependency_fix)
+rce_runtime_patch_sha256=$(source_value rce_runtime_patch_sha256)
+rce_passenger_sha256=$(source_value rce_passenger_sha256)
 
 [[ $version = 2026-04-22 ]] || fail "unexpected Canvas production version"
 [[ $canvas_commit = 44bfdc264d5fe6a942ebdb5f10a0eb63ee04df3a ]] \
@@ -103,6 +107,38 @@ grep -Fqx "import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'" \
     || fail "unexpected Canvas RCE source tree"
 [[ $rce_sha256 = 1b36c2231c09d406053c92fde9d805211e538265e8d01827477a3ce9187c0495 ]] \
     || fail "unexpected Canvas RCE archive digest"
+[[ $rce_runtime_dependency_fix = local-patch ]] \
+    || fail "unexpected Canvas RCE runtime dependency fix state"
+[[ $rce_runtime_patch_sha256 = bcf60f9a304e9311dfea6c843f5bafbaf8ede812668d33523e1cceb818068413 ]] \
+    || fail "unexpected Canvas RCE runtime patch digest"
+[[ $rce_passenger_sha256 = c63dd962fcbc5d767dfbf907a97d7e11a0c5622e27af116f344a4b84accb1df9 ]] \
+    || fail "unexpected Canvas RCE Passenger launcher digest"
+echo "$rce_runtime_patch_sha256  /usr/local/share/turnkey-canvas/canvas_rce_runtime_dependency.patch" \
+    | sha256sum --check --status \
+    || fail "Canvas RCE runtime patch integrity check failed"
+echo "$rce_passenger_sha256  /usr/local/share/turnkey-canvas/canvas_rce_passenger.js" \
+    | sha256sum --check --status \
+    || fail "Canvas RCE Passenger launcher integrity check failed"
+echo "$rce_passenger_sha256  $RCE_ROOT/turnkey-passenger.js" \
+    | sha256sum --check --status \
+    || fail "installed Canvas RCE Passenger launcher integrity check failed"
+python3 - "$RCE_ROOT/package.json" "$RCE_ROOT/package-lock.json" <<'PY' \
+    || fail "Canvas RCE runtime dependency metadata is not production-safe"
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as package_file:
+    package = json.load(package_file)
+with open(sys.argv[2], encoding="utf-8") as lock_file:
+    lock = json.load(lock_file)
+root = lock["packages"][""]
+dev_null = lock["packages"]["node_modules/dev-null"]
+assert package["dependencies"]["dev-null"] == "0.1.1"
+assert "dev-null" not in package["devDependencies"]
+assert root["dependencies"]["dev-null"] == "0.1.1"
+assert "dev-null" not in root["devDependencies"]
+assert dev_null.get("dev") is not True
+PY
 
 ruby_version=$(ruby -e 'print RUBY_VERSION')
 rails_version=$(cd "$APP_ROOT" && RAILS_ENV=production \
@@ -122,6 +158,9 @@ systemctl is-active --quiet apache2 || fail "Apache is not active"
 systemctl is-active --quiet postgresql || fail "PostgreSQL is not active"
 systemctl is-active --quiet redis-server || fail "Redis is not active"
 apache2ctl configtest 2>&1 | grep -q 'Syntax OK' || fail "Apache configuration is invalid"
+grep -Fq 'PassengerStartupFile turnkey-passenger.js' \
+    /etc/apache2/sites-available/canvas.conf \
+    || fail "Canvas RCE does not use the verified Passenger launcher"
 redis-cli ping | grep -qx PONG || fail "Redis did not answer PING"
 grep -Fq 'exec su -s /bin/bash www-data' "$APP_ROOT/script/canvas_init" \
     || fail "Canvas background job launcher does not use the explicit runtime account"
@@ -195,16 +234,22 @@ asset_size=$(curl --insecure -fsSL --max-time 60 \
     "$BASE_URL$asset_path" | wc -c)
 [[ $asset_size -gt 100 ]] || fail "Canvas compiled CSS asset was empty"
 
-rce_status=$(curl --insecure -sS --max-time 30 -o /dev/null \
-    -w '%{http_code}' https://localhost:3000/)
-[[ $rce_status = 200 || $rce_status = 404 ]] \
-    || fail "Canvas RCE HTTPS service returned $rce_status"
+rce_body=$(curl --insecure -fsS --max-time 30 https://localhost:3000/) \
+    || fail "Canvas RCE HTTPS service did not return HTTP 200"
+require_contains "$rce_body" "Hello, from RCE Service" "Canvas RCE HTTPS service"
+rce_readiness=$(curl --insecure -fsS --max-time 30 \
+    https://localhost:3000/readiness) \
+    || fail "Canvas RCE readiness service did not return HTTP 200"
+require_contains "$rce_readiness" '"name":"Rich Content Service"' \
+    "Canvas RCE readiness service"
 
 check_output=$(turnkey-canvas-update --check)
 candidate=$(awk -F= '$1 == "candidate" {print $2}' <<<"$check_output")
 candidate_tree=$(awk -F= '$1 == "candidate_tree" {print $2}' <<<"$check_output")
 candidate_rce=$(awk -F= '$1 == "candidate_rce" {print $2}' <<<"$check_output")
 asset_fix=$(awk -F= '$1 == "asset_fix" {print $2}' <<<"$check_output")
+rce_dependency_fix=$(awk -F= '$1 == "rce_dependency_fix" {print $2}' \
+    <<<"$check_output")
 [[ $candidate =~ ^[0-9a-f]{40}$ ]] || fail "updater returned an invalid Canvas commit"
 [[ $candidate_tree =~ ^[0-9a-f]{40}$ ]] || fail "updater returned an invalid Canvas tree"
 [[ $candidate_rce =~ ^[0-9a-f]{40}$ ]] || fail "updater returned an invalid RCE commit"
@@ -213,6 +258,12 @@ require_contains "$check_output" \
     "asset_patch_commit=$canvas_asset_patch_commit" "Canvas updater"
 [[ $asset_fix = required || $asset_fix = upstream ]] \
     || fail "Canvas updater returned an invalid asset fix state"
+[[ $rce_dependency_fix = required || $rce_dependency_fix = upstream ]] \
+    || fail "Canvas updater returned an invalid RCE dependency fix state"
+require_contains "$check_output" \
+    "rce_runtime_patch_sha256=$rce_runtime_patch_sha256" "Canvas updater"
+require_contains "$check_output" \
+    "rce_passenger_sha256=$rce_passenger_sha256" "Canvas updater"
 
 apply_plan=$(turnkey-canvas-update --apply --dry-run)
 require_contains "$apply_plan" "mode=apply-dry-run" "Canvas updater plan"
@@ -220,10 +271,17 @@ require_contains "$apply_plan" "target=$candidate" "Canvas updater plan"
 require_contains "$apply_plan" "target_tree=$candidate_tree" "Canvas updater plan"
 require_contains "$apply_plan" "rce_target=$candidate_rce" "Canvas updater plan"
 require_contains "$apply_plan" "asset_fix=$asset_fix" "Canvas updater plan"
+require_contains "$apply_plan" "rce_dependency_fix=$rce_dependency_fix" \
+    "Canvas updater plan"
 require_contains "$apply_plan" \
     "asset_patch_commit=$canvas_asset_patch_commit" "Canvas updater plan"
 require_contains "$apply_plan" \
-    "verified=official-branch-commits-trees-and-asset-fix" "Canvas updater plan"
+    "rce_runtime_patch_sha256=$rce_runtime_patch_sha256" "Canvas updater plan"
+require_contains "$apply_plan" \
+    "rce_passenger_sha256=$rce_passenger_sha256" "Canvas updater plan"
+require_contains "$apply_plan" \
+    "verified=official-branch-commits-trees-and-compatibility-fixes" \
+    "Canvas updater plan"
 
 apt-get update -qq \
     -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/yarn.list \
@@ -245,5 +303,5 @@ runtime_checks=HTTPS firstboot login, course create/read, PostgreSQL, Redis, bac
 updater_command=turnkey-canvas-update --check; turnkey-canvas-update --apply --dry-run; apt-get update for official Yarn source
 updater_result=eligible official Canvas commit $candidate with tree $candidate_tree, RCE commit $candidate_rce and Yarn package $yarn_candidate
 updater_channel=official Canvas prod, Canvas RCE master and signed official Yarn APT channels
-integrity_evidence=Canvas archive SHA256 $canvas_sha256 and RCE archive SHA256 $rce_sha256 bound to exact commits and trees; Yarn packages verified by signed APT metadata
+integrity_evidence=Canvas archive SHA256 $canvas_sha256 and RCE archive SHA256 $rce_sha256 bound to exact commits and trees; RCE runtime patch SHA256 $rce_runtime_patch_sha256 and Passenger launcher SHA256 $rce_passenger_sha256 verified; Yarn packages verified by signed APT metadata
 EOF
