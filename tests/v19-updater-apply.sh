@@ -48,6 +48,7 @@ exercise_real_updater_apply() {
     local expected_rce=$3
     local expected_rce_tree=$4
     local stage canvas_archive rce_archive old_canvas old_rce prior_bundle
+    local baseline_rakelib
     local branch_head tag_head config_hash rce_env_hash
     local prior_check apply_log apply_output backup_root db_backup files_backup
     local update_post_check
@@ -183,11 +184,23 @@ PY
     [[ $(su postgres -c "psql --tuples-only --no-align \
         canvas_production --command=\"SELECT to_regclass('public.switchman_shards') IS NULL\"") = t ]] \
         || fail "compatible Canvas fixture database was not blank"
+    baseline_rakelib=$stage/rakelib
+    install -d -m 0755 "$baseline_rakelib"
+    cat > "$baseline_rakelib/turnkey_canvas_baseline.rake" <<'RAKE'
+namespace :turnkey do
+  task canvas_baseline: :environment do
+    unless Rails.application.config.rake_eager_load == false &&
+           Rails.application.config.eager_load == false
+      raise "Canvas Rake environment unexpectedly enabled eager loading"
+    end
+    target = Integer(ENV.fetch("CANVAS_BASELINE_MIGRATION"), 10)
+    ActiveRecord::Base.connection_pool.migration_context.migrate(target)
+  end
+end
+RAKE
     CANVAS_BASELINE_MIGRATION=$PREVIOUS_CANVAS_BASELINE_MIGRATION \
-        bundle exec rails runner '
-target = Integer(ENV.fetch("CANVAS_BASELINE_MIGRATION"), 10)
-ActiveRecord::Base.migration_context.migrate(target)
-'
+        bundle exec rake --rakelib "$baseline_rakelib" \
+        turnkey:canvas_baseline
     [[ $(su postgres -c "psql --tuples-only --no-align \
         canvas_production --command=\"SELECT to_regclass('public.switchman_shards') IS NOT NULL\"") = t ]] \
         || fail "compatible Canvas baseline did not create switchman_shards"
