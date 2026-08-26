@@ -55,9 +55,15 @@ ruby_version=$(ruby -e 'print RUBY_VERSION')
 rails_version=$(cd "$APP_ROOT" && RAILS_ENV=production \
     BUNDLE_PATH=vendor/bundle bundle exec rails runner 'print Rails.version')
 node_version=$(node --version)
+yarn_version=$(yarn --version)
 [[ $ruby_version == 3.4.* ]] || fail "Canvas is not running Ruby 3.4"
 [[ $rails_version == 8.0.* ]] || fail "Canvas is not running Rails 8.0"
 [[ $node_version == v20.* ]] || fail "Canvas is not using Node.js 20"
+[[ $yarn_version == 1.22.* ]] || fail "Canvas is not using Yarn Classic 1.22"
+[[ $(source_value yarn) = "$yarn_version" ]] \
+    || fail "Canvas provenance does not match the installed Yarn version"
+[[ $(source_value yarn_source) = official-yarn-apt ]] \
+    || fail "Canvas provenance does not identify the official Yarn channel"
 
 systemctl is-active --quiet apache2 || fail "Apache is not active"
 systemctl is-active --quiet postgresql || fail "PostgreSQL is not active"
@@ -151,14 +157,25 @@ require_contains "$apply_plan" "target_tree=$candidate_tree" "Canvas updater pla
 require_contains "$apply_plan" "rce_target=$candidate_rce" "Canvas updater plan"
 require_contains "$apply_plan" "verified=official-branch-commits-and-trees" "Canvas updater plan"
 
+apt-get update -qq \
+    -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/yarn.list \
+    -o Dir::Etc::sourceparts=- \
+    -o APT::Get::List-Cleanup=0
+yarn_policy=$(apt-cache policy yarn)
+require_contains "$yarn_policy" "https://dl.yarnpkg.com/debian" \
+    "official Yarn update channel"
+yarn_candidate=$(sed -n 's/^  Candidate: //p' <<<"$yarn_policy" | head -n 1)
+[[ -n $yarn_candidate && $yarn_candidate != '(none)' ]] \
+    || fail "official Yarn update channel did not return a candidate"
+
 echo "PASS: Canvas login, course create/read, PostgreSQL, Redis, jobs, assets, RCE and updater"
-echo "version=$version rails=$rails_version canvas_commit=$canvas_commit rce_commit=$rce_commit"
+echo "version=$version rails=$rails_version yarn=$yarn_version canvas_commit=$canvas_commit rce_commit=$rce_commit"
 cat > "$TKL_TEST_RESULT" <<EOF
 package_source=official Canvas prod at $canvas_commit and official RCE at $rce_commit
-installed_version=Canvas production release $version on Rails $rails_version and Ruby $ruby_version
-runtime_checks=HTTPS firstboot login, course create/read, PostgreSQL, Redis, background jobs, compiled assets and RCE passed
-updater_command=turnkey-canvas-update --check; turnkey-canvas-update --apply --dry-run
-updater_result=eligible official Canvas commit $candidate with tree $candidate_tree and RCE commit $candidate_rce
-updater_channel=official Canvas prod and Canvas RCE master branches
-integrity_evidence=Canvas archive SHA256 $canvas_sha256 and RCE archive SHA256 $rce_sha256 bound to exact commits and trees
+installed_version=Canvas production release $version on Rails $rails_version, Ruby $ruby_version and Yarn $yarn_version
+runtime_checks=HTTPS firstboot login, course create/read, PostgreSQL, Redis, background jobs, compiled assets, RCE and official Yarn metadata passed
+updater_command=turnkey-canvas-update --check; turnkey-canvas-update --apply --dry-run; apt-get update for official Yarn source
+updater_result=eligible official Canvas commit $candidate with tree $candidate_tree, RCE commit $candidate_rce and Yarn package $yarn_candidate
+updater_channel=official Canvas prod, Canvas RCE master and signed official Yarn APT channels
+integrity_evidence=Canvas archive SHA256 $canvas_sha256 and RCE archive SHA256 $rce_sha256 bound to exact commits and trees; Yarn packages verified by signed APT metadata
 EOF

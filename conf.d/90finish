@@ -57,6 +57,8 @@ rce_archive_sha256=$RCE_SHA256
 ruby=$(ruby -e 'print RUBY_VERSION')
 rails=$(cd "$WEBROOT" && BUNDLE_PATH=vendor/bundle bundle exec rails --version | awk '{print $2}')
 node=$(node --version)
+yarn=$(yarn --version)
+yarn_source=official-yarn-apt
 EOF
 chmod 0644 /usr/local/share/turnkey-canvas/source
 

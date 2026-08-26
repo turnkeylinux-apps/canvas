@@ -5,7 +5,7 @@
 git
 libyaml-dev
 libpq-dev
-libxmlsec1
+libxmlsec1t64
 libxmlsec1-dev
 zlib1g-dev
 imagemagick
@@ -17,5 +17,4 @@ parallel
 unzip
 pbzip2
 rsync
-yarnpkg
 npm

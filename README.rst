@@ -28,7 +28,8 @@ and on top of that:
    - Includes Canvas automated jobs daemon initscript.
    - Includes Apache pre-configured with Passenger support, with SSL
      support out of the box (performance, security).
-   - Includes Debian Node.js 20, NPM and Yarn required for compiling assets.
+   - Includes Debian Node.js 20 and NPM, plus Yarn Classic from the signed
+     official Yarn package channel, as required for compiling assets.
    - Includes the official Canvas Rich Content Editor API at a verified
      source commit.
 

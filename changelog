@@ -1,7 +1,8 @@
 turnkey-canvas-19.0 (1) turnkey; urgency=low
 
   * Install the official Canvas production source at a verified commit with
-    its matching Ruby 3.4, Rails 8 and Node.js 20 dependency contract.
+    its matching Ruby 3.4, Rails 8, Node.js 20 and Yarn Classic dependency
+    contract.
 
   * Update Canvas Rich Content Editor API to a verified official source
     commit.
