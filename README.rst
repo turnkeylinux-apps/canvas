@@ -13,7 +13,8 @@ and on top of that:
 - Canvas configurations:
    
    - Installed from the official Canvas ``prod`` channel in
-     ``/var/www/canvas`` at a verified source commit.
+     ``/var/www/canvas`` at a verified source commit, with a pinned and hashed
+     official upstream fix for that release's asset-build dependency error.
 
      **Security note**: Updates to Canvas may require supervision so
      they **ARE NOT** configured to install automatically. See `Canvas

@@ -8,6 +8,9 @@ CANVAS_REPO=https://github.com/instructure/canvas-lms.git
 RCE_REPO=https://github.com/instructure/canvas-rce-api.git
 CANVAS_API=https://api.github.com/repos/instructure/canvas-lms
 RCE_API=https://api.github.com/repos/instructure/canvas-rce-api
+ASSET_PATH=ui/features/discovery_page/react/components/ConfigureModal.tsx
+ASSET_BROKEN_IMPORT="import {showFlashAlert} from '@instructure/platform-alerts'"
+ASSET_FIXED_IMPORT="import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'"
 
 usage() {
     echo "usage: turnkey-canvas-update --check | --apply [--dry-run]" >&2
@@ -68,6 +71,8 @@ canvas_commit=$(source_value canvas_commit)
 canvas_tree=$(source_value canvas_tree)
 rce_commit=$(source_value rce_commit)
 rce_tree=$(source_value rce_tree)
+canvas_asset_patch_commit=$(source_value canvas_asset_patch_commit)
+canvas_asset_patch_sha256=$(source_value canvas_asset_patch_sha256)
 [[ $installed =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || {
     echo "Installed Canvas version is invalid" >&2
     exit 1
@@ -78,6 +83,16 @@ for identity in "$canvas_commit" "$canvas_tree" "$rce_commit" "$rce_tree"; do
         exit 1
     }
 done
+[[ $canvas_asset_patch_commit =~ ^[0-9a-f]{40}$ && \
+    $canvas_asset_patch_sha256 =~ ^[0-9a-f]{64}$ ]] || {
+    echo "Installed Canvas asset patch identity is invalid" >&2
+    exit 1
+}
+asset_patch=/usr/local/share/turnkey-canvas/canvas_platform_alerts.patch
+echo "$canvas_asset_patch_sha256  $asset_patch" | sha256sum --check --status || {
+    echo "Canvas asset patch integrity check failed" >&2
+    exit 1
+}
 
 candidate=$(remote_head "$CANVAS_REPO" prod)
 candidate_rce=$(remote_head "$RCE_REPO" master)
@@ -87,6 +102,16 @@ candidate_rce=$(remote_head "$RCE_REPO" master)
 }
 candidate_tree=$(remote_tree "$CANVAS_API" "$candidate")
 candidate_rce_tree=$(remote_tree "$RCE_API" "$candidate_rce")
+candidate_asset=$(curl -fsSL \
+    "https://raw.githubusercontent.com/instructure/canvas-lms/$candidate/$ASSET_PATH")
+if grep -Fxq "$ASSET_BROKEN_IMPORT" <<<"$candidate_asset"; then
+    asset_fix=required
+elif grep -Fxq "$ASSET_FIXED_IMPORT" <<<"$candidate_asset"; then
+    asset_fix=upstream
+else
+    echo "Official Canvas source has an unsupported asset import" >&2
+    exit 1
+fi
 
 status=update-available
 if [[ $canvas_commit = "$candidate" && $rce_commit = "$candidate_rce" ]]; then
@@ -100,6 +125,8 @@ if [[ $mode = --check ]]; then
     printf 'candidate=%s\ncandidate_tree=%s\n' "$candidate" "$candidate_tree"
     printf 'candidate_rce=%s\ncandidate_rce_tree=%s\n' \
         "$candidate_rce" "$candidate_rce_tree"
+    printf 'asset_fix=%s\nasset_patch_commit=%s\n' \
+        "$asset_fix" "$canvas_asset_patch_commit"
     printf 'channel=official-canvas-prod\nrce_channel=official-canvas-rce-master\n'
     printf 'status=%s\n' "$status"
     exit 0
@@ -110,7 +137,9 @@ if $dry_run; then
         "$candidate" "$candidate_tree"
     printf 'rce_target=%s\nrce_target_tree=%s\n' \
         "$candidate_rce" "$candidate_rce_tree"
-    printf 'verified=official-branch-commits-and-trees\nstatus=%s\n' "$status"
+    printf 'asset_fix=%s\nasset_patch_commit=%s\n' \
+        "$asset_fix" "$canvas_asset_patch_commit"
+    printf 'verified=official-branch-commits-trees-and-asset-fix\nstatus=%s\n' "$status"
     exit 0
 fi
 
@@ -143,6 +172,12 @@ git -C "$stage/canvas" fetch -q --depth 1 origin "$candidate"
 git -C "$stage/canvas" checkout -q --detach FETCH_HEAD
 [[ $(git -C "$stage/canvas" rev-parse HEAD) = "$candidate" ]]
 [[ $(git -C "$stage/canvas" rev-parse 'HEAD^{tree}') = "$candidate_tree" ]]
+if [[ $asset_fix = required ]]; then
+    grep -Fqx "$ASSET_BROKEN_IMPORT" "$stage/canvas/$ASSET_PATH"
+    git -C "$stage/canvas" apply "$asset_patch"
+else
+    grep -Fqx "$ASSET_FIXED_IMPORT" "$stage/canvas/$ASSET_PATH"
+fi
 git -C "$stage/canvas" apply \
     /usr/local/share/turnkey-canvas/canvas_init.patch
 
@@ -216,6 +251,8 @@ canvas_channel=prod
 canvas_commit=$candidate
 canvas_tree=$candidate_tree
 canvas_archive_sha256=not-applicable-git-update
+canvas_asset_patch_commit=$canvas_asset_patch_commit
+canvas_asset_patch_sha256=$canvas_asset_patch_sha256
 rce_channel=master
 rce_commit=$candidate_rce
 rce_tree=$candidate_rce_tree
@@ -223,6 +260,8 @@ rce_archive_sha256=not-applicable-git-update
 ruby=$(ruby -e 'print RUBY_VERSION')
 rails=$(cd "$APP_ROOT" && BUNDLE_PATH=vendor/bundle bundle exec rails --version | awk '{print $2}')
 node=$(node --version)
+yarn=$(yarn --version)
+yarn_source=official-yarn-apt
 EOF
 chmod 0644 "$SOURCE_FILE"
 

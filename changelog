@@ -9,6 +9,9 @@ turnkey-canvas-19.0 (1) turnkey; urgency=low
 
   * Add a supervised updater for the official Canvas production channel.
 
+  * Apply the verified official upstream fix for the pinned production
+    release's missing JavaScript asset dependency.
+
   * Add v19 acceptance coverage for firstboot web login, a course create/read
     round trip, PostgreSQL, Redis, background jobs and compiled assets.
 

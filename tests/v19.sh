@@ -33,6 +33,8 @@ version=$(source_value version)
 canvas_commit=$(source_value canvas_commit)
 canvas_tree=$(source_value canvas_tree)
 canvas_sha256=$(source_value canvas_archive_sha256)
+canvas_asset_patch_commit=$(source_value canvas_asset_patch_commit)
+canvas_asset_patch_sha256=$(source_value canvas_asset_patch_sha256)
 rce_commit=$(source_value rce_commit)
 rce_tree=$(source_value rce_tree)
 rce_sha256=$(source_value rce_archive_sha256)
@@ -44,6 +46,16 @@ rce_sha256=$(source_value rce_archive_sha256)
     || fail "unexpected Canvas source tree"
 [[ $canvas_sha256 = 2ca116f8a130b970c7b945fd547e760bdb8e7b8d0ea4c1c63f07222fd874009c ]] \
     || fail "unexpected Canvas archive digest"
+[[ $canvas_asset_patch_commit = 9f8cd4be107659b17a29a28dc553f9453c21da4a ]] \
+    || fail "unexpected Canvas asset patch commit"
+[[ $canvas_asset_patch_sha256 = 2a46919cd35b598ab0c7e4d2b6eeaf6138253fde7107407d800c83f65d88fc31 ]] \
+    || fail "unexpected Canvas asset patch digest"
+echo "$canvas_asset_patch_sha256  /usr/local/share/turnkey-canvas/canvas_platform_alerts.patch" \
+    | sha256sum --check --status \
+    || fail "Canvas asset patch integrity check failed"
+grep -Fqx "import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'" \
+    "$APP_ROOT/ui/features/discovery_page/react/components/ConfigureModal.tsx" \
+    || fail "official Canvas asset fix is not applied"
 [[ $rce_commit = e076fe28a09f4e41058da0983b5ef2c809123d9f ]] \
     || fail "unexpected Canvas RCE commit"
 [[ $rce_tree = 4a2e99c1efccf0011215bb074065a0859135a132 ]] \
@@ -145,17 +157,26 @@ check_output=$(turnkey-canvas-update --check)
 candidate=$(awk -F= '$1 == "candidate" {print $2}' <<<"$check_output")
 candidate_tree=$(awk -F= '$1 == "candidate_tree" {print $2}' <<<"$check_output")
 candidate_rce=$(awk -F= '$1 == "candidate_rce" {print $2}' <<<"$check_output")
+asset_fix=$(awk -F= '$1 == "asset_fix" {print $2}' <<<"$check_output")
 [[ $candidate =~ ^[0-9a-f]{40}$ ]] || fail "updater returned an invalid Canvas commit"
 [[ $candidate_tree =~ ^[0-9a-f]{40}$ ]] || fail "updater returned an invalid Canvas tree"
 [[ $candidate_rce =~ ^[0-9a-f]{40}$ ]] || fail "updater returned an invalid RCE commit"
 require_contains "$check_output" "channel=official-canvas-prod" "Canvas updater"
+require_contains "$check_output" \
+    "asset_patch_commit=$canvas_asset_patch_commit" "Canvas updater"
+[[ $asset_fix = required || $asset_fix = upstream ]] \
+    || fail "Canvas updater returned an invalid asset fix state"
 
 apply_plan=$(turnkey-canvas-update --apply --dry-run)
 require_contains "$apply_plan" "mode=apply-dry-run" "Canvas updater plan"
 require_contains "$apply_plan" "target=$candidate" "Canvas updater plan"
 require_contains "$apply_plan" "target_tree=$candidate_tree" "Canvas updater plan"
 require_contains "$apply_plan" "rce_target=$candidate_rce" "Canvas updater plan"
-require_contains "$apply_plan" "verified=official-branch-commits-and-trees" "Canvas updater plan"
+require_contains "$apply_plan" "asset_fix=$asset_fix" "Canvas updater plan"
+require_contains "$apply_plan" \
+    "asset_patch_commit=$canvas_asset_patch_commit" "Canvas updater plan"
+require_contains "$apply_plan" \
+    "verified=official-branch-commits-trees-and-asset-fix" "Canvas updater plan"
 
 apt-get update -qq \
     -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/yarn.list \
