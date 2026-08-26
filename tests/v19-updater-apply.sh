@@ -9,6 +9,8 @@ PREVIOUS_CANVAS_VERSION=2026-04-08
 PREVIOUS_CANVAS_COMMIT=727a00ece21c7c3bcf1193f3244560f8074acd43
 PREVIOUS_CANVAS_TREE=5188b4896a558cbb65e7afadba2ca0ffc71b34e1
 PREVIOUS_CANVAS_SHA256=bdb18c5a0a9f462bec2c5f806125e7b5b56ee215c5f033650471fe4a25cca7c0
+PREVIOUS_CANVAS_BASELINE_MIGRATION=20101210192618
+PREVIOUS_CANVAS_BASELINE_SHA256=3a53a2665099c09222d1bd96bdc236685c8222aa2073f8a17360dd4dc95abd9f
 PREVIOUS_RCE_VERSION=v1.27.6
 PREVIOUS_RCE_COMMIT=d702ab3bd201cc3bad19abd32cec22e7fd9e1701
 PREVIOUS_RCE_TREE=4fa8916e68484c551868f6db43ea898eeb10d87a
@@ -99,6 +101,9 @@ exercise_real_updater_apply() {
     tar -xzf "$rce_archive" -C "$stage"
     old_canvas=$stage/canvas-lms-$PREVIOUS_CANVAS_COMMIT
     old_rce=$stage/canvas-rce-api-$PREVIOUS_RCE_COMMIT
+    echo "$PREVIOUS_CANVAS_BASELINE_SHA256  $old_canvas/db/migrate/${PREVIOUS_CANVAS_BASELINE_MIGRATION}_init_canvas_db.rb" \
+        | sha256sum --check --status \
+        || fail "compatible Canvas baseline migration failed integrity verification"
 
     if grep -Fqx \
             "import {showFlashAlert} from '@instructure/platform-alerts'" \
@@ -169,6 +174,30 @@ PY
     export CANVAS_LMS_ADMIN_PASSWORD=$TKL_TEST_APP_PASS
     export CANVAS_LMS_ACCOUNT_NAME='TurnKey Canvas updater acceptance'
     export CANVAS_LMS_STATS_COLLECTION=opt-out
+
+    # Switchman wraps db:migrate by enumerating switchman_shards. A completely
+    # blank database cannot cross that wrapper because the predecessor's
+    # squashed baseline migration is what creates the relation. Run that exact
+    # official baseline through the underlying Rails migration context, prove
+    # the state transition, then return to Canvas's documented setup task.
+    [[ $(su postgres -c "psql --tuples-only --no-align \
+        canvas_production --command=\"SELECT to_regclass('public.switchman_shards') IS NULL\"") = t ]] \
+        || fail "compatible Canvas fixture database was not blank"
+    CANVAS_BASELINE_MIGRATION=$PREVIOUS_CANVAS_BASELINE_MIGRATION \
+        bundle exec rails runner '
+target = Integer(ENV.fetch("CANVAS_BASELINE_MIGRATION"), 10)
+ActiveRecord::Base.migration_context.migrate(target)
+'
+    [[ $(su postgres -c "psql --tuples-only --no-align \
+        canvas_production --command=\"SELECT to_regclass('public.switchman_shards') IS NOT NULL\"") = t ]] \
+        || fail "compatible Canvas baseline did not create switchman_shards"
+    [[ $(su postgres -c "psql --tuples-only --no-align \
+        canvas_production --command=\"SELECT count(*) FROM schema_migrations WHERE version = '$PREVIOUS_CANVAS_BASELINE_MIGRATION'\"") = 1 ]] \
+        || fail "compatible Canvas baseline migration was not recorded"
+    [[ $(su postgres -c "psql --tuples-only --no-align \
+        canvas_production --command=\"SELECT max(version) FROM schema_migrations\"") = \
+        "$PREVIOUS_CANVAS_BASELINE_MIGRATION" ]] \
+        || fail "compatible Canvas fixture ran beyond its squashed baseline"
     bundle exec rake db:initial_setup
     bundle exec rake db:migrate
     bundle exec rake switchman_inst_jobs:install:migrations
