@@ -12,6 +12,8 @@ turnkey-canvas-19.0 (1) turnkey; urgency=low
   * Apply the verified official upstream fix for the pinned production
     release's missing JavaScript asset dependency.
 
+  * Run Canvas background jobs as the explicit www-data runtime account.
+
   * Add v19 acceptance coverage for firstboot web login, a course create/read
     round trip, PostgreSQL, Redis, background jobs and compiled assets.
 

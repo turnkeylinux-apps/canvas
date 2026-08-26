@@ -82,6 +82,10 @@ systemctl is-active --quiet postgresql || fail "PostgreSQL is not active"
 systemctl is-active --quiet redis-server || fail "Redis is not active"
 apache2ctl configtest 2>&1 | grep -q 'Syntax OK' || fail "Apache configuration is invalid"
 redis-cli ping | grep -qx PONG || fail "Redis did not answer PING"
+grep -Fq 'exec su -s /bin/bash www-data' "$APP_ROOT/script/canvas_init" \
+    || fail "Canvas background job launcher does not use the explicit runtime account"
+! grep -Fq 'stat -c %U' "$APP_ROOT/script/canvas_init" \
+    || fail "Canvas background job launcher derives its runtime account from file ownership"
 pgrep -u www-data -f 'delayed_job|inst_jobs' >/dev/null \
     || fail "Canvas background job workers are not running"
 
