@@ -1,5 +1,5 @@
 // Passenger cannot pass the --import option used by the official npm start
-// command. Load instrumentation before importing the application module so
-// dotenv and error instrumentation are initialized before dependency wiring.
-await import("./instrument.js");
-await import("./app.js");
+// command. Ordered static imports load instrumentation before the application
+// while keeping the graph synchronous for Passenger's CommonJS node-loader.
+import "./instrument.js";
+import "./app.js";

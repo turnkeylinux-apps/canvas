@@ -111,7 +111,7 @@ grep -Fqx "import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'" \
     || fail "unexpected Canvas RCE runtime dependency fix state"
 [[ $rce_runtime_patch_sha256 = bcf60f9a304e9311dfea6c843f5bafbaf8ede812668d33523e1cceb818068413 ]] \
     || fail "unexpected Canvas RCE runtime patch digest"
-[[ $rce_passenger_sha256 = c63dd962fcbc5d767dfbf907a97d7e11a0c5622e27af116f344a4b84accb1df9 ]] \
+[[ $rce_passenger_sha256 = 6c20617d717b2a4af2ae8903e7785e5efe7a0e124f1a4cd6c12bfb9855a87299 ]] \
     || fail "unexpected Canvas RCE Passenger launcher digest"
 echo "$rce_runtime_patch_sha256  /usr/local/share/turnkey-canvas/canvas_rce_runtime_dependency.patch" \
     | sha256sum --check --status \
@@ -161,6 +161,10 @@ apache2ctl configtest 2>&1 | grep -q 'Syntax OK' || fail "Apache configuration i
 grep -Fq 'PassengerStartupFile turnkey-passenger.js' \
     /etc/apache2/sites-available/canvas.conf \
     || fail "Canvas RCE does not use the verified Passenger launcher"
+grep -Fq 'PassengerUser www-data' /etc/apache2/sites-available/canvas.conf \
+    || fail "Canvas RCE Passenger user is not explicit"
+grep -Fq 'PassengerGroup www-data' /etc/apache2/sites-available/canvas.conf \
+    || fail "Canvas RCE Passenger group is not explicit"
 redis-cli ping | grep -qx PONG || fail "Redis did not answer PING"
 grep -Fq 'exec su -s /bin/bash www-data' "$APP_ROOT/script/canvas_init" \
     || fail "Canvas background job launcher does not use the explicit runtime account"
