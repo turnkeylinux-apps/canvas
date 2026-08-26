@@ -14,6 +14,12 @@ turnkey-canvas-19.0 (1) turnkey; urgency=low
 
   * Run Canvas background jobs as the explicit www-data runtime account.
 
+  * Correct the pinned RCE production dependency metadata and run its verified
+    Passenger launcher as the explicit www-data runtime account.
+
+  * Verify supervised Canvas, RCE and signed Yarn update candidates in the
+    exact Trixie appliance runtime.
+
   * Add v19 acceptance coverage for firstboot web login, a course create/read
     round trip, PostgreSQL, Redis, background jobs and compiled assets.
 
