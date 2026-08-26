@@ -267,7 +267,8 @@ fi
 backup_dir=/var/backups/turnkey-canvas
 backup_id=$(date -u +%Y%m%dT%H%M%SZ)
 install -d -m 0700 "$backup_dir"
-pg_dump canvas_production | gzip -c > "$backup_dir/canvas-$backup_id.sql.gz"
+su postgres -c 'pg_dump canvas_production' \
+    | gzip -c > "$backup_dir/canvas-$backup_id.sql.gz"
 tar -C / -czf "$backup_dir/canvas-$backup_id-files.tar.gz" \
     var/www/canvas/config var/www/canvas/tmp/files \
     var/www/canvas-rce-api/.env

@@ -287,6 +287,16 @@ require_contains "$apply_plan" \
     "verified=official-branch-commits-trees-and-compatibility-fixes" \
     "Canvas updater plan"
 
+# Prove the real update lifecycle in this disposable exact runtime. The helper
+# installs a verified compatible prior Canvas/RCE source and database, applies
+# the updater to the already resolved current heads, then repeats the normal
+# login, course, service, asset and RCE checks while verifying backups and
+# preserved configuration/data.
+source /run/tkl-v19-tests/tests/v19-updater-apply.sh
+exercise_real_updater_apply \
+    "$candidate" "$candidate_tree" "$candidate_rce" \
+    "$(awk -F= '$1 == "candidate_rce_tree" {print $2}' <<<"$check_output")"
+
 apt-get update -qq \
     -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/yarn.list \
     -o Dir::Etc::sourceparts=- \
@@ -298,14 +308,14 @@ yarn_candidate=$(sed -n 's/^  Candidate: //p' <<<"$yarn_policy" | head -n 1)
 [[ -n $yarn_candidate && $yarn_candidate != '(none)' ]] \
     || fail "official Yarn update channel did not return a candidate"
 
-echo "PASS: Canvas login, course create/read, PostgreSQL, Redis, jobs, assets, RCE and updater"
+echo "PASS: Canvas login, course create/read, PostgreSQL, Redis, jobs, assets, RCE and real updater apply"
 echo "version=$version rails=$rails_version yarn=$yarn_version canvas_commit=$canvas_commit rce_commit=$rce_commit"
 cat > "$TKL_TEST_RESULT" <<EOF
 package_source=official Canvas prod at $canvas_commit and official RCE at $rce_commit
 installed_version=Canvas production release $version on Rails $rails_version, Ruby $ruby_version and Yarn $yarn_version
-runtime_checks=HTTPS firstboot login, course create/read, PostgreSQL, Redis, background jobs, compiled assets, RCE and official Yarn metadata passed
-updater_command=turnkey-canvas-update --check; turnkey-canvas-update --apply --dry-run; apt-get update for official Yarn source
-updater_result=eligible official Canvas commit $candidate with tree $candidate_tree, RCE commit $candidate_rce and Yarn package $yarn_candidate
+runtime_checks=HTTPS firstboot login, course create/read, PostgreSQL, Redis, background jobs, compiled assets, RCE, real prior-to-current updater apply and official Yarn metadata passed
+updater_command=turnkey-canvas-update --check; turnkey-canvas-update --apply --dry-run; real --apply from Canvas $PREVIOUS_CANVAS_COMMIT and RCE $PREVIOUS_RCE_COMMIT; apt-get update for official Yarn source
+updater_result=applied official Canvas commit $candidate with tree $candidate_tree and RCE commit $candidate_rce; backup $update_apply_backup_id; apply log SHA256 $update_apply_log_sha256; Yarn package $yarn_candidate
 updater_channel=official Canvas prod, Canvas RCE master and signed official Yarn APT channels
-integrity_evidence=Canvas archive SHA256 $canvas_sha256 and RCE archive SHA256 $rce_sha256 bound to exact commits and trees; RCE runtime patch SHA256 $rce_runtime_patch_sha256 and Passenger launcher SHA256 $rce_passenger_sha256 verified; Yarn packages verified by signed APT metadata
+integrity_evidence=Canvas archive SHA256 $canvas_sha256 and RCE archive SHA256 $rce_sha256 bound to exact commits and trees; compatible prior Canvas archive SHA256 $PREVIOUS_CANVAS_SHA256 and RCE archive SHA256 $PREVIOUS_RCE_SHA256 verified; RCE runtime patch SHA256 $rce_runtime_patch_sha256 and Passenger launcher SHA256 $rce_passenger_sha256 verified; Yarn packages verified by signed APT metadata
 EOF

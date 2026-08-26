@@ -20,6 +20,11 @@ turnkey-canvas-19.0 (1) turnkey; urgency=low
   * Verify supervised Canvas, RCE and signed Yarn update candidates in the
     exact Trixie appliance runtime.
 
+  * Exercise a real supervised update from verified compatible Canvas and RCE
+    sources, including backup, data, configuration and service recovery.
+
+  * Run the updater's PostgreSQL backup as the database administrator.
+
   * Add v19 acceptance coverage for firstboot web login, a course create/read
     round trip, PostgreSQL, Redis, background jobs and compiled assets.
 
