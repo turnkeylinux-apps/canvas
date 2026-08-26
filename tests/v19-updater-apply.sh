@@ -42,6 +42,15 @@ print(tree, end="")
 '
 }
 
+reset_compatible_fixture_redis() {
+    [[ $(redis-cli -n 0 --raw PING) = PONG ]] \
+        || fail "compatible Canvas fixture Redis was unavailable"
+    [[ $(redis-cli -n 0 --raw FLUSHDB) = OK ]] \
+        || fail "compatible Canvas fixture Redis cache was not cleared"
+    [[ $(redis-cli -n 0 --raw DBSIZE) = 0 ]] \
+        || fail "compatible Canvas fixture Redis cache remained populated"
+}
+
 exercise_real_updater_apply() {
     local expected_canvas=$1
     local expected_canvas_tree=$2
@@ -55,7 +64,7 @@ exercise_real_updater_apply() {
     local login_page login_csrf_token dashboard csrf_token
     local post_course_name post_course_code post_course_json post_course_id
     local post_course_read post_course_page db_courses asset_path asset_size
-    local rce_body rce_readiness prior_rails_version
+    local rce_body rce_readiness prior_rails_version special_account_count
 
     [[ $expected_canvas = 44bfdc264d5fe6a942ebdb5f10a0eb63ee04df3a ]] \
         || fail "updater apply target is not the accepted Canvas production commit"
@@ -169,6 +178,7 @@ PY
     su postgres -c 'dropdb --if-exists canvas_queue'
     su postgres -c 'createdb --owner canvas -EUTF8 canvas_production'
     su postgres -c 'createdb --owner canvas -EUTF8 canvas_queue'
+    reset_compatible_fixture_redis
     export RAILS_ENV=production
     export BUNDLE_PATH=$prior_bundle
     export CANVAS_LMS_ADMIN_EMAIL=$LOGIN_EMAIL
@@ -212,6 +222,12 @@ RAKE
         "$PREVIOUS_CANVAS_BASELINE_MIGRATION" ]] \
         || fail "compatible Canvas fixture ran beyond its squashed baseline"
     bundle exec rake db:initial_setup
+    special_account_count=$(su postgres -c "psql --tuples-only --no-align \
+        canvas_production --command=\"SELECT count(*) FROM settings AS s \
+        JOIN accounts AS a ON a.id::text = s.value \
+        WHERE s.name IN ('default_account_id', 'site_admin_account_id')\"")
+    [[ $special_account_count = 2 ]] \
+        || fail "compatible Canvas fixture special accounts were not initialized"
     bundle exec rake db:migrate
     bundle exec rake switchman_inst_jobs:install:migrations
 
