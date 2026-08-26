@@ -4,6 +4,15 @@ source /usr/local/src/canvas.conf
 
 service postgresql start
 
+if [[ $COMMON_DB_USER != "$DB_USER" ]]; then
+    su postgres -c "psql --set ON_ERROR_STOP=1 postgres" <<EOF
+ALTER ROLE "$COMMON_DB_USER" RENAME TO "$DB_USER";
+ALTER DATABASE "${COMMON_DB_USER}_test" RENAME TO "${DB_USER}_test";
+ALTER DATABASE "${COMMON_DB_USER}_development" RENAME TO "${DB_USER}_development";
+ALTER DATABASE "${COMMON_DB_USER}_production" RENAME TO "$DB_NAME";
+EOF
+fi
+
 su postgres -c "createdb --owner $DB_USER -EUTF8 $DB_QUEUE"
 set +x
 su postgres -c "psql --set ON_ERROR_STOP=1 postgres" <<EOF
