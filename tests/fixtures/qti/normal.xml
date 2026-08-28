@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2">
+  <item ident="turnkey-normal-qti" title="TurnKey normal QTI fixture">
+    <presentation>
+      <material><mattext>Is this import contained?</mattext></material>
+      <response_lid ident="RESPONSE" rcardinality="Single">
+        <render_choice>
+          <response_label ident="yes">
+            <material><mattext>Yes</mattext></material>
+          </response_label>
+        </render_choice>
+      </response_lid>
+    </presentation>
+    <resprocessing>
+      <outcomes><decvar varname="SCORE" vartype="Decimal"/></outcomes>
+      <respcondition continue="No">
+        <conditionvar><varequal respident="RESPONSE">yes</varequal></conditionvar>
+        <setvar action="Set" varname="SCORE">1</setvar>
+      </respcondition>
+    </resprocessing>
+  </item>
+</questestinterop>

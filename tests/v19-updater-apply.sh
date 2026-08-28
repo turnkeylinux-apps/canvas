@@ -313,6 +313,8 @@ qti_commit=$qti_commit
 qti_tree=$qti_tree
 qti_archive_sha256=$qti_sha256
 qti_migrate_sha256=$qti_migrate_sha256
+qti_path_patch_sha256=$qti_path_patch_sha256
+qti_imsqtiv1_sha256=$qti_imsqtiv1_sha256
 ruby=$(ruby -e 'print RUBY_VERSION')
 rails=$prior_rails_version
 node=$(node --version)
@@ -390,9 +392,16 @@ PY
         || fail "Canvas updater changed the pinned QTI source identity"
     [[ $(source_value qti_tree) = "$qti_tree" ]] \
         || fail "Canvas updater changed the pinned QTI source tree"
+    [[ $(source_value qti_path_patch_sha256) = "$qti_path_patch_sha256" ]] \
+        || fail "Canvas updater changed the QTI containment patch identity"
+    [[ $(source_value qti_imsqtiv1_sha256) = "$qti_imsqtiv1_sha256" ]] \
+        || fail "Canvas updater changed the patched QTI module identity"
     echo "$qti_migrate_sha256  $APP_ROOT/vendor/QTIMigrationTool/migrate.py" \
         | sha256sum --check --status \
         || fail "Canvas updater changed the pinned QTI Migration Tool"
+    echo "$qti_imsqtiv1_sha256  $APP_ROOT/vendor/QTIMigrationTool/lib/imsqtiv1.py" \
+        | sha256sum --check --status \
+        || fail "Canvas updater changed QTI path containment"
     echo "$rce_passenger_sha256  $RCE_ROOT/turnkey-passenger.js" \
         | sha256sum --check --status \
         || fail "Canvas updater did not restore the verified RCE launcher"

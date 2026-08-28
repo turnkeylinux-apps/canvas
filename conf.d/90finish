@@ -64,6 +64,8 @@ qti_commit=$QTI_COMMIT
 qti_tree=$QTI_TREE
 qti_archive_sha256=$QTI_SHA256
 qti_migrate_sha256=$QTI_MIGRATE_SHA256
+qti_path_patch_sha256=$QTI_PATH_PATCH_SHA256
+qti_imsqtiv1_sha256=$QTI_IMSQTIV1_SHA256
 ruby=$(ruby -e 'print RUBY_VERSION')
 rails=$(cd "$WEBROOT" && BUNDLE_PATH=vendor/bundle bundle exec rails --version | awk '{print $2}')
 node=$(node --version)

@@ -81,6 +81,8 @@ qti_commit=$(source_value qti_commit)
 qti_tree=$(source_value qti_tree)
 qti_archive_sha256=$(source_value qti_archive_sha256)
 qti_migrate_sha256=$(source_value qti_migrate_sha256)
+qti_path_patch_sha256=$(source_value qti_path_patch_sha256)
+qti_imsqtiv1_sha256=$(source_value qti_imsqtiv1_sha256)
 [[ $installed =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || {
     echo "Installed Canvas version is invalid" >&2
     exit 1
@@ -97,7 +99,8 @@ for identity in "$qti_commit" "$qti_tree"; do
         exit 1
     }
 done
-for digest in "$qti_archive_sha256" "$qti_migrate_sha256"; do
+for digest in "$qti_archive_sha256" "$qti_migrate_sha256" \
+        "$qti_path_patch_sha256" "$qti_imsqtiv1_sha256"; do
     [[ $digest =~ ^[0-9a-f]{64}$ ]] || {
         echo "Installed QTI source digest is invalid" >&2
         exit 1
@@ -106,6 +109,17 @@ done
 echo "$qti_migrate_sha256  $APP_ROOT/vendor/QTIMigrationTool/migrate.py" \
     | sha256sum --check --status || {
     echo "Installed QTI Migration Tool integrity check failed" >&2
+    exit 1
+}
+qti_path_patch=/usr/local/src/qti_path_containment.patch
+echo "$qti_path_patch_sha256  $qti_path_patch" \
+    | sha256sum --check --status || {
+    echo "QTI path containment patch integrity check failed" >&2
+    exit 1
+}
+echo "$qti_imsqtiv1_sha256  $APP_ROOT/vendor/QTIMigrationTool/lib/imsqtiv1.py" \
+    | sha256sum --check --status || {
+    echo "Installed QTI path containment integrity check failed" >&2
     exit 1
 }
 [[ $canvas_asset_patch_commit =~ ^[0-9a-f]{40}$ && \
@@ -219,6 +233,8 @@ if [[ $mode = --check ]]; then
         "$rce_dependency_fix" "$rce_runtime_patch_sha256"
     printf 'rce_passenger_sha256=%s\n' "$rce_passenger_sha256"
     printf 'qti_commit=%s\nqti_tree=%s\n' "$qti_commit" "$qti_tree"
+    printf 'qti_path_patch_sha256=%s\nqti_imsqtiv1_sha256=%s\n' \
+        "$qti_path_patch_sha256" "$qti_imsqtiv1_sha256"
     printf 'channel=official-canvas-prod\nrce_channel=official-canvas-rce-master\n'
     printf 'status=%s\n' "$status"
     exit 0
@@ -235,6 +251,8 @@ if $dry_run; then
         "$rce_dependency_fix" "$rce_runtime_patch_sha256"
     printf 'rce_passenger_sha256=%s\n' "$rce_passenger_sha256"
     printf 'qti_commit=%s\nqti_tree=%s\n' "$qti_commit" "$qti_tree"
+    printf 'qti_path_patch_sha256=%s\nqti_imsqtiv1_sha256=%s\n' \
+        "$qti_path_patch_sha256" "$qti_imsqtiv1_sha256"
     printf 'verified=official-branch-commits-trees-and-compatibility-fixes\nstatus=%s\n' "$status"
     exit 0
 fi
@@ -366,6 +384,8 @@ qti_commit=$qti_commit
 qti_tree=$qti_tree
 qti_archive_sha256=$qti_archive_sha256
 qti_migrate_sha256=$qti_migrate_sha256
+qti_path_patch_sha256=$qti_path_patch_sha256
+qti_imsqtiv1_sha256=$qti_imsqtiv1_sha256
 ruby=$(ruby -e 'print RUBY_VERSION')
 rails=$(cd "$APP_ROOT" && BUNDLE_PATH=vendor/bundle bundle exec rails --version | awk '{print $2}')
 node=$(node --version)
