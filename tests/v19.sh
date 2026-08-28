@@ -83,6 +83,10 @@ rce_sha256=$(source_value rce_archive_sha256)
 rce_runtime_dependency_fix=$(source_value rce_runtime_dependency_fix)
 rce_runtime_patch_sha256=$(source_value rce_runtime_patch_sha256)
 rce_passenger_sha256=$(source_value rce_passenger_sha256)
+qti_commit=$(source_value qti_commit)
+qti_tree=$(source_value qti_tree)
+qti_sha256=$(source_value qti_archive_sha256)
+qti_migrate_sha256=$(source_value qti_migrate_sha256)
 
 [[ $version = 2026-04-22 ]] || fail "unexpected Canvas production version"
 [[ $canvas_commit = 44bfdc264d5fe6a942ebdb5f10a0eb63ee04df3a ]] \
@@ -107,6 +111,20 @@ grep -Fqx "import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'" \
     || fail "unexpected Canvas RCE source tree"
 [[ $rce_sha256 = 1b36c2231c09d406053c92fde9d805211e538265e8d01827477a3ce9187c0495 ]] \
     || fail "unexpected Canvas RCE archive digest"
+[[ $qti_commit = aab28af7a05142140c6fd2f45ed67a4c925a7d1b ]] \
+    || fail "unexpected QTI Migration Tool commit"
+[[ $qti_tree = be9df5dc0bf1ca1fa1e04c35ba1fa39d5640e808 ]] \
+    || fail "unexpected QTI Migration Tool tree"
+[[ $qti_sha256 = f44cdbcc90b8e7982a7ba7d69b2d88ebf22c2fc00d1d98cf2ca9fb1d89f72d3a ]] \
+    || fail "unexpected QTI Migration Tool archive digest"
+[[ $qti_migrate_sha256 = e2787e1bb9c822ce3928e6062ed379d8275c91fc883c90947176ad01521e3905 ]] \
+    || fail "unexpected QTI Migration Tool executable digest"
+echo "$qti_migrate_sha256  $APP_ROOT/vendor/QTIMigrationTool/migrate.py" \
+    | sha256sum --check --status \
+    || fail "installed QTI Migration Tool integrity check failed"
+"$APP_ROOT/vendor/QTIMigrationTool/migrate.py" --version \
+    | grep -Fq 'Version: 2008-06-12' \
+    || fail "installed QTI Migration Tool did not execute"
 [[ $rce_runtime_dependency_fix = local-patch ]] \
     || fail "unexpected Canvas RCE runtime dependency fix state"
 [[ $rce_runtime_patch_sha256 = bcf60f9a304e9311dfea6c843f5bafbaf8ede812668d33523e1cceb818068413 ]] \
@@ -157,6 +175,8 @@ yarn_version=$(yarn --version)
 systemctl is-active --quiet apache2 || fail "Apache is not active"
 systemctl is-active --quiet postgresql || fail "PostgreSQL is not active"
 systemctl is-active --quiet redis-server || fail "Redis is not active"
+systemctl is-active --quiet postfix || fail "Postfix is not active"
+systemctl is-active --quiet webmin || fail "Webmin is not active"
 apache2ctl configtest 2>&1 | grep -q 'Syntax OK' || fail "Apache configuration is invalid"
 grep -Fq 'PassengerStartupFile turnkey-passenger.js' \
     /etc/apache2/sites-available/canvas.conf \
@@ -172,9 +192,23 @@ grep -Fq 'exec su -s /bin/bash www-data' "$APP_ROOT/script/canvas_init" \
     || fail "Canvas background job launcher derives its runtime account from file ownership"
 pgrep -u www-data -f 'delayed_job|inst_jobs' >/dev/null \
     || fail "Canvas background job workers are not running"
+grep -Fq '  delivery_method: "sendmail"' \
+    "$APP_ROOT/config/outgoing_mail.yml" \
+    || fail "Canvas outgoing mail does not use local sendmail"
 
-cookie=$(mktemp)
-pass_file=$(mktemp)
+# Exercise one cheap persistence boundary before the stateful application flow.
+# Bring dependencies up before workers and HTTP.
+systemctl restart postgresql redis-server canvas_init apache2
+systemctl is-active --quiet postgresql || fail "PostgreSQL did not restart"
+systemctl is-active --quiet redis-server || fail "Redis did not restart"
+systemctl is-active --quiet canvas_init || fail "Canvas jobs did not restart"
+systemctl is-active --quiet apache2 || fail "Apache did not restart"
+redis-cli ping | grep -qx PONG || fail "Redis did not answer after restart"
+pgrep -u www-data -f 'delayed_job|inst_jobs' >/dev/null \
+    || fail "Canvas background job workers did not recover after restart"
+
+cookie=$(mktemp /var/tmp/turnkey-canvas-cookie.XXXXXX)
+pass_file=$(mktemp /var/tmp/turnkey-canvas-pass.XXXXXX)
 trap 'rm -f "$cookie" "$pass_file"' EXIT
 chmod 0600 "$cookie" "$pass_file"
 printf '%s' "$TKL_TEST_APP_PASS" > "$pass_file"
@@ -225,6 +259,46 @@ course_read=$(curl "${curl_args[@]}" -H 'Accept: application/json' \
 require_contains "$course_read" "$course_name" "Canvas course read response"
 course_page=$(curl "${curl_args[@]}" "$BASE_URL/courses/$course_id")
 require_contains "$course_page" "$course_name" "Canvas course page"
+
+student_email='student@example.invalid'
+student_json=$(curl "${curl_args[@]}" \
+    -H "X-CSRF-Token: $csrf_token" \
+    -H 'Accept: application/json' \
+    "$BASE_URL/api/v1/accounts/1/users" \
+    --data-urlencode 'user[name]=TurnKey Canvas student' \
+    --data-urlencode "pseudonym[unique_id]=$student_email" \
+    --data-urlencode 'pseudonym[password]=turnkey-canvas-student-acceptance' \
+    --data-urlencode 'pseudonym[send_confirmation]=false')
+student_id=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' \
+    <<<"$student_json")
+[[ $student_id =~ ^[0-9]+$ ]] || fail "Canvas API did not create a user"
+
+enrollment_json=$(curl "${curl_args[@]}" \
+    -H "X-CSRF-Token: $csrf_token" \
+    -H 'Accept: application/json' \
+    "$BASE_URL/api/v1/courses/$course_id/enrollments" \
+    --data-urlencode "enrollment[user_id]=$student_id" \
+    --data-urlencode 'enrollment[type]=StudentEnrollment' \
+    --data-urlencode 'enrollment[enrollment_state]=active')
+require_contains "$enrollment_json" 'StudentEnrollment' \
+    "Canvas user enrollment response"
+
+page_title='TurnKey Canvas acceptance page'
+page_body='<p>Stateful Canvas v19 content round trip</p>'
+page_json=$(curl "${curl_args[@]}" \
+    -H "X-CSRF-Token: $csrf_token" \
+    -H 'Accept: application/json' \
+    "$BASE_URL/api/v1/courses/$course_id/pages" \
+    --data-urlencode "wiki_page[title]=$page_title" \
+    --data-urlencode "wiki_page[body]=$page_body" \
+    --data-urlencode 'wiki_page[published]=true')
+page_url=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["url"])' \
+    <<<"$page_json")
+[[ -n $page_url ]] || fail "Canvas API did not create course content"
+page_read=$(curl "${curl_args[@]}" -H 'Accept: application/json' \
+    "$BASE_URL/api/v1/courses/$course_id/pages/$page_url")
+require_contains "$page_read" 'Stateful Canvas v19 content round trip' \
+    "Canvas course content response"
 
 db_course=$(su postgres -c \
     "psql --tuples-only --no-align canvas_production --command=\"SELECT name || '|' || course_code FROM courses WHERE id=$course_id\"")
@@ -308,14 +382,14 @@ yarn_candidate=$(sed -n 's/^  Candidate: //p' <<<"$yarn_policy" | head -n 1)
 [[ -n $yarn_candidate && $yarn_candidate != '(none)' ]] \
     || fail "official Yarn update channel did not return a candidate"
 
-echo "PASS: Canvas login, course create/read, PostgreSQL, Redis, jobs, assets, RCE and real updater apply"
+echo "PASS: Canvas login, course/user/content round trip, restart, mail, management, PostgreSQL, Redis, jobs, assets, QTI, RCE and real updater apply"
 echo "version=$version rails=$rails_version yarn=$yarn_version canvas_commit=$canvas_commit rce_commit=$rce_commit"
 cat > "$TKL_TEST_RESULT" <<EOF
 package_source=official Canvas prod at $canvas_commit and official RCE at $rce_commit
 installed_version=Canvas production release $version on Rails $rails_version, Ruby $ruby_version and Yarn $yarn_version
-runtime_checks=HTTPS firstboot login, course create/read, PostgreSQL, Redis, background jobs, compiled assets, RCE, real prior-to-current updater apply and official Yarn metadata passed
+runtime_checks=HTTPS firstboot login, course/user/content round trip, service restart, Postfix mail configuration, Webmin management, PostgreSQL, Redis, background jobs, compiled assets, pinned QTI importer, RCE, real prior-to-current updater apply and official Yarn metadata passed
 updater_command=turnkey-canvas-update --check; turnkey-canvas-update --apply --dry-run; real --apply from Canvas $PREVIOUS_CANVAS_COMMIT and RCE $PREVIOUS_RCE_COMMIT; apt-get update for official Yarn source
 updater_result=applied official Canvas commit $candidate with tree $candidate_tree and RCE commit $candidate_rce; backup $update_apply_backup_id; apply log SHA256 $update_apply_log_sha256; Yarn package $yarn_candidate
 updater_channel=official Canvas prod, Canvas RCE master and signed official Yarn APT channels
-integrity_evidence=Canvas archive SHA256 $canvas_sha256 and RCE archive SHA256 $rce_sha256 bound to exact commits and trees; compatible prior Canvas archive SHA256 $PREVIOUS_CANVAS_SHA256 and RCE archive SHA256 $PREVIOUS_RCE_SHA256 verified; RCE runtime patch SHA256 $rce_runtime_patch_sha256 and Passenger launcher SHA256 $rce_passenger_sha256 verified; Yarn packages verified by signed APT metadata
+integrity_evidence=Canvas archive SHA256 $canvas_sha256, RCE archive SHA256 $rce_sha256 and QTI archive SHA256 $qti_sha256 bound to exact commits and trees; compatible prior Canvas archive SHA256 $PREVIOUS_CANVAS_SHA256 and RCE archive SHA256 $PREVIOUS_RCE_SHA256 verified; RCE runtime patch SHA256 $rce_runtime_patch_sha256, Passenger launcher SHA256 $rce_passenger_sha256 and installed QTI entrypoint SHA256 $qti_migrate_sha256 verified; Yarn packages verified by signed APT metadata
 EOF
