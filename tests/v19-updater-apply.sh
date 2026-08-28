@@ -381,6 +381,13 @@ PY
         || fail "Canvas updater provenance did not record the applied RCE commit"
     [[ $(source_value rce_tree) = "$expected_rce_tree" ]] \
         || fail "Canvas updater provenance did not record the applied RCE tree"
+    [[ $(source_value qti_commit) = "$qti_commit" ]] \
+        || fail "Canvas updater changed the pinned QTI source identity"
+    [[ $(source_value qti_tree) = "$qti_tree" ]] \
+        || fail "Canvas updater changed the pinned QTI source tree"
+    echo "$qti_migrate_sha256  $APP_ROOT/vendor/QTIMigrationTool/migrate.py" \
+        | sha256sum --check --status \
+        || fail "Canvas updater changed the pinned QTI Migration Tool"
     echo "$rce_passenger_sha256  $RCE_ROOT/turnkey-passenger.js" \
         | sha256sum --check --status \
         || fail "Canvas updater did not restore the verified RCE launcher"
