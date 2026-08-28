@@ -20,6 +20,13 @@ turnkey-canvas-19.0 (1) turnkey; urgency=low
   * Verify supervised Canvas, RCE and signed Yarn update candidates in the
     exact Trixie appliance runtime.
 
+  * Install Canvas's official QTI Migration Tool from an exact verified source
+    commit and preserve it across supervised Canvas updates.
+
+  * Raise the delayed-job worker memory ceiling to 1 GiB.
+
+  * Reload systemd during supervised updates before restarting Canvas.
+
   * Exercise a real supervised update from verified compatible Canvas and RCE
     sources, including backup, data, configuration and service recovery.
 

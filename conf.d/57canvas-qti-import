@@ -1,0 +1,24 @@
+#!/bin/bash -ex
+
+source /usr/local/src/canvas.conf
+
+# Canvas calls the official QTI Migration Tool from this exact path when it
+# imports legacy QTI 1.x content. Install an integrity-bound source archive;
+# a mutable branch or tag is not an authorization boundary for build-time code.
+QTI_ROOT=$WEBROOT/vendor/QTIMigrationTool
+ARCHIVE=/usr/local/src/qti-migration-$QTI_COMMIT.tar.gz
+URL=https://github.com/instructure/QTIMigrationTool/archive/$QTI_COMMIT.tar.gz
+curl_args=(-fsSL)
+[[ -z ${FAB_HTTP_PROXY:-} ]] || curl_args+=(--proxy "$FAB_HTTP_PROXY")
+curl "${curl_args[@]}" "$URL" -o "$ARCHIVE"
+echo "$QTI_SHA256  $ARCHIVE" | sha256sum --check --status
+
+install -d "$QTI_ROOT"
+tar -xzf "$ARCHIVE" --strip-components=1 -C "$QTI_ROOT"
+rm -f "$ARCHIVE"
+echo "$QTI_MIGRATE_SHA256  $QTI_ROOT/migrate.py" \
+    | sha256sum --check --status
+chown -R root:root "$QTI_ROOT"
+find "$QTI_ROOT" -type d -exec chmod 0755 {} \;
+find "$QTI_ROOT" -type f -exec chmod 0644 {} \;
+chmod 0755 "$QTI_ROOT/migrate.py"

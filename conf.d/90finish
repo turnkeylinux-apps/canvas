@@ -60,6 +60,10 @@ rce_archive_sha256=$RCE_SHA256
 rce_runtime_dependency_fix=local-patch
 rce_runtime_patch_sha256=$RCE_RUNTIME_PATCH_SHA256
 rce_passenger_sha256=$RCE_PASSENGER_SHA256
+qti_commit=$QTI_COMMIT
+qti_tree=$QTI_TREE
+qti_archive_sha256=$QTI_SHA256
+qti_migrate_sha256=$QTI_MIGRATE_SHA256
 ruby=$(ruby -e 'print RUBY_VERSION')
 rails=$(cd "$WEBROOT" && BUNDLE_PATH=vendor/bundle bundle exec rails --version | awk '{print $2}')
 node=$(node --version)
