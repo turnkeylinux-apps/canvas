@@ -18,6 +18,11 @@ tar -xzf "$ARCHIVE" --strip-components=1 -C "$QTI_ROOT"
 rm -f "$ARCHIVE"
 echo "$QTI_MIGRATE_SHA256  $QTI_ROOT/migrate.py" \
     | sha256sum --check --status
+QTI_PATCH=/usr/local/src/qti_path_containment.patch
+echo "$QTI_PATH_PATCH_SHA256  $QTI_PATCH" | sha256sum --check --status
+git -C "$QTI_ROOT" apply "$QTI_PATCH"
+echo "$QTI_IMSQTIV1_SHA256  $QTI_ROOT/lib/imsqtiv1.py" \
+    | sha256sum --check --status
 chown -R root:root "$QTI_ROOT"
 find "$QTI_ROOT" -type d -exec chmod 0755 {} \;
 find "$QTI_ROOT" -type f -exec chmod 0644 {} \;

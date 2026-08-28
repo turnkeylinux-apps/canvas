@@ -21,7 +21,8 @@ turnkey-canvas-19.0 (1) turnkey; urgency=low
     exact Trixie appliance runtime.
 
   * Install Canvas's official QTI Migration Tool from an exact verified source
-    commit and preserve it across supervised Canvas updates.
+    commit, reject referenced files outside the import root, and preserve the
+    integrity-bound importer across supervised Canvas updates.
 
   * Raise the delayed-job worker memory ceiling to 1 GiB.
 

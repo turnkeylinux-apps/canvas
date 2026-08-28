@@ -87,6 +87,8 @@ qti_commit=$(source_value qti_commit)
 qti_tree=$(source_value qti_tree)
 qti_sha256=$(source_value qti_archive_sha256)
 qti_migrate_sha256=$(source_value qti_migrate_sha256)
+qti_path_patch_sha256=$(source_value qti_path_patch_sha256)
+qti_imsqtiv1_sha256=$(source_value qti_imsqtiv1_sha256)
 
 [[ $version = 2026-04-22 ]] || fail "unexpected Canvas production version"
 [[ $canvas_commit = 44bfdc264d5fe6a942ebdb5f10a0eb63ee04df3a ]] \
@@ -119,12 +121,24 @@ grep -Fqx "import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'" \
     || fail "unexpected QTI Migration Tool archive digest"
 [[ $qti_migrate_sha256 = e2787e1bb9c822ce3928e6062ed379d8275c91fc883c90947176ad01521e3905 ]] \
     || fail "unexpected QTI Migration Tool executable digest"
+[[ $qti_path_patch_sha256 = edec6e6b407194e1d5fa01c81e0af6c1445bbb1844a756bde8bf8df1114c75e0 ]] \
+    || fail "unexpected QTI path containment patch digest"
+[[ $qti_imsqtiv1_sha256 = d1e102e5eaad12970548f0ea03f35603d42262b0264044f9d7b5cf50ed9e472f ]] \
+    || fail "unexpected patched QTI module digest"
 echo "$qti_migrate_sha256  $APP_ROOT/vendor/QTIMigrationTool/migrate.py" \
     | sha256sum --check --status \
     || fail "installed QTI Migration Tool integrity check failed"
 "$APP_ROOT/vendor/QTIMigrationTool/migrate.py" --version \
     | grep -Fq 'Version: 2008-06-12' \
     || fail "installed QTI Migration Tool did not execute"
+echo "$qti_path_patch_sha256  /usr/local/src/qti_path_containment.patch" \
+    | sha256sum --check --status \
+    || fail "QTI path containment patch integrity check failed"
+echo "$qti_imsqtiv1_sha256  $APP_ROOT/vendor/QTIMigrationTool/lib/imsqtiv1.py" \
+    | sha256sum --check --status \
+    || fail "installed QTI path containment integrity check failed"
+source /run/tkl-v19-tests/tests/v19-qti-containment.sh
+exercise_qti_path_containment
 [[ $rce_runtime_dependency_fix = local-patch ]] \
     || fail "unexpected Canvas RCE runtime dependency fix state"
 [[ $rce_runtime_patch_sha256 = bcf60f9a304e9311dfea6c843f5bafbaf8ede812668d33523e1cceb818068413 ]] \
@@ -387,9 +401,9 @@ echo "version=$version rails=$rails_version yarn=$yarn_version canvas_commit=$ca
 cat > "$TKL_TEST_RESULT" <<EOF
 package_source=official Canvas prod at $canvas_commit and official RCE at $rce_commit
 installed_version=Canvas production release $version on Rails $rails_version, Ruby $ruby_version and Yarn $yarn_version
-runtime_checks=HTTPS firstboot login, course/user/content round trip, service restart, Postfix mail configuration, Webmin management, PostgreSQL, Redis, background jobs, compiled assets, pinned QTI importer, RCE, real prior-to-current updater apply and official Yarn metadata passed
+runtime_checks=HTTPS firstboot login, course/user/content round trip, service restart, Postfix mail configuration, Webmin management, PostgreSQL, Redis, background jobs, compiled assets, pinned QTI importer with positive conversion and out-of-root rejection, RCE, real prior-to-current updater apply and official Yarn metadata passed
 updater_command=turnkey-canvas-update --check; turnkey-canvas-update --apply --dry-run; real --apply from Canvas $PREVIOUS_CANVAS_COMMIT and RCE $PREVIOUS_RCE_COMMIT; apt-get update for official Yarn source
 updater_result=applied official Canvas commit $candidate with tree $candidate_tree and RCE commit $candidate_rce; backup $update_apply_backup_id; apply log SHA256 $update_apply_log_sha256; Yarn package $yarn_candidate
 updater_channel=official Canvas prod, Canvas RCE master and signed official Yarn APT channels
-integrity_evidence=Canvas archive SHA256 $canvas_sha256, RCE archive SHA256 $rce_sha256 and QTI archive SHA256 $qti_sha256 bound to exact commits and trees; compatible prior Canvas archive SHA256 $PREVIOUS_CANVAS_SHA256 and RCE archive SHA256 $PREVIOUS_RCE_SHA256 verified; RCE runtime patch SHA256 $rce_runtime_patch_sha256, Passenger launcher SHA256 $rce_passenger_sha256 and installed QTI entrypoint SHA256 $qti_migrate_sha256 verified; Yarn packages verified by signed APT metadata
+integrity_evidence=Canvas archive SHA256 $canvas_sha256, RCE archive SHA256 $rce_sha256 and QTI archive SHA256 $qti_sha256 bound to exact commits and trees; compatible prior Canvas archive SHA256 $PREVIOUS_CANVAS_SHA256 and RCE archive SHA256 $PREVIOUS_RCE_SHA256 verified; RCE runtime patch SHA256 $rce_runtime_patch_sha256, Passenger launcher SHA256 $rce_passenger_sha256, QTI containment patch SHA256 $qti_path_patch_sha256, installed QTI entrypoint SHA256 $qti_migrate_sha256 and patched module SHA256 $qti_imsqtiv1_sha256 verified; Yarn packages verified by signed APT metadata
 EOF
