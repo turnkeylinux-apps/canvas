@@ -187,6 +187,7 @@ PY
         --exclude=/log \
         --exclude=/tmp \
         --exclude=/vendor/bundle \
+        --exclude=/vendor/QTIMigrationTool \
         "$old_canvas/" "$APP_ROOT/"
     rsync -a --delete \
         --exclude=/.env \
