@@ -1,14 +1,5 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
-source /usr/local/src/canvas.conf
-
-GEMOPTS='--no-document'
-
-# install gems
-[ "$FAB_HTTP_PROXY" ] && export http_proxy=$FAB_HTTP_PROXY
-
-gem install $GEMOPTS psych
-gem install $GEMOPTS activesupport
-gem update $GEMOPTS strscan
-unset http_proxy
-
+ruby -e 'abort "Canvas requires Ruby 3.4" unless RUBY_VERSION.start_with?("3.4.")'
+node -e 'process.exit(Number(process.versions.node.split(".")[0]) === 20 ? 0 : 1)'
+yarn --version | grep -Eq '^1\.(19|2[0-9])\.'

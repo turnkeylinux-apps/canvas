@@ -1,0 +1,152 @@
+diff --git a/lib/imsqtiv1.py b/lib/imsqtiv1.py
+index cec3d0e..bd7c4aa 100755
+--- a/lib/imsqtiv1.py
++++ b/lib/imsqtiv1.py
+@@ -50,6 +50,22 @@ OUTCOME_PREFIX="OUTCOME_"
+ FEEDBACK_PREFIX="FEEDBACK_"
+ CURRENT_FILE_NAME=None
+ 
++def ResolveSourceURI(path, uri, importRoot):
++	"""Resolve a package reference without allowing it outside importRoot."""
++	if not importRoot:
++		raise ValueError("QTI import root is unavailable")
++	root=os.path.realpath(importRoot)
++	base=os.path.dirname(os.path.realpath(path))
++	segments=[DecodePathSegment(segment) for segment in uri.split('/')]
++	candidate=os.path.realpath(os.path.join(base,*segments))
++	try:
++		contained=os.path.commonpath([root,candidate]) == root
++	except ValueError:
++		contained=False
++	if not contained:
++		raise ValueError("QTI source reference leaves import root: %s"%uri)
++	return candidate
++
+ from iso8601 import *
+ from xmlutils import *
+ from rtfutils import *
+@@ -304,11 +320,15 @@ class Manifest(QTIObjectV1):
+ 		self.files={}
+ 		self.path=None
+ 		self.cp=None
++		self.importRoot=None
+ 
+ 	def SetPath (self,path):
+ 		if self.path is None:
+ 			self.path=path
+ 
++	def SetImportRoot (self,path):
++		self.importRoot=path
++
+ 	def SetCP(self,cp):
+ 		self.cp=cp
+ 		self.cp.AddResource(self.resource)
+@@ -329,18 +349,7 @@ class Manifest(QTIObjectV1):
+ 		return uri
+ 
+ 	def ResolveURI (self,uri):
+-		# The base URI of this XML file is self.path
+-		# resolve URI to make it a full path
+-		path,discard=os.path.split(self.path)
+-		segments=uri.split('/')
+-		for segment in segments:
+-			if segment==".":
+-				continue
+-			elif segment=="..":
+-				path,discard=os.path.split(path)
+-			else:
+-				path=os.path.join(path,DecodePathSegment(segment))
+-		return path
++		return ResolveSourceURI(self.path,uri,self.importRoot)
+ 
+ 	def update_file_path(self, path):
+ 		if len(self.files) == 1:
+@@ -425,6 +434,7 @@ class QuesTestInterop(QTIObjectV1):
+ 		self.path=None
+ 		self.cp=None
+ 		self.parser=None
++		self.importRoot=None
+ 		self.resources=[]
+ 		self.description=None
+ 
+@@ -434,6 +444,9 @@ class QuesTestInterop(QTIObjectV1):
+ 	def SetPath (self,path):
+ 		self.path=path
+ 
++	def SetImportRoot (self,path):
++		self.importRoot=path
++
+ 	def SetParser (self,parser):
+ 		self.parser=parser
+ 
+@@ -457,18 +470,7 @@ class QuesTestInterop(QTIObjectV1):
+ 		pass
+ 
+ 	def ResolveURI (self,uri):
+-		# The base URI of this XML file is self.path
+-		# resolve URI to make it a full path
+-		path,discard=os.path.split(self.path)
+-		segments=uri.split('/')
+-		for segment in segments:
+-			if segment==".":
+-				continue
+-			elif segment=="..":
+-				path,discard=os.path.split(path)
+-			else:
+-				path=os.path.join(path,DecodePathSegment(segment))
+-		return path
++		return ResolveSourceURI(self.path,uri,self.importRoot)
+ 
+ 	def CloseObject (self):
+ 		if len(self.resources)==1 and self.description:
+@@ -6312,6 +6314,7 @@ class QTIParserV1(handler.ContentHandler, handler.ErrorHandler):
+ 			self.elements['qmd_organisation']=QMDOrganisation
+ 		self.cp=ContentPackage()
+ 		self.currPath=None
++		self.importRoot=None
+ 
+ 	def startElementNS (self, name, qname, attrs):
+ 		if attrs:
+@@ -6329,10 +6332,15 @@ class QTIParserV1(handler.ContentHandler, handler.ErrorHandler):
+ 		else:
+ 			return name[1]
+ 
+-	def ProcessFiles (self,basepath,files):
++	def ProcessFiles (self,basepath,files,importRoot=None):
+ 		f=None
+ 		for fileName in files:
+ 			path=os.path.join(basepath,fileName)
++			if importRoot is None:
++				canonical=os.path.realpath(path)
++				fileRoot=canonical if os.path.isdir(canonical) else os.path.dirname(canonical)
++			else:
++				fileRoot=importRoot
+ 			if os.path.isdir(path):
+ 				print("Processing directory: : "+path)
+ 				children=os.listdir(path)
+@@ -6343,9 +6351,10 @@ class QTIParserV1(handler.ContentHandler, handler.ErrorHandler):
+ 						if i:
+ 							children[0], children[i] = children[i], children[0]
+ 						break
+-				self.ProcessFiles(path,children)
++				self.ProcessFiles(path,children,fileRoot)
+ 			elif fileName[-4:].lower() in ['.xml', '.dat', '.qti']:
+ 				print("Processing file: "+path)
++				self.importRoot=fileRoot
+ 				f=open(path,'rb')
+ 				try:
+ 					self.Parse(f,path)
+@@ -6405,11 +6414,13 @@ class QTIParserV1(handler.ContentHandler, handler.ErrorHandler):
+ 				if isinstance(self.cObject,QuesTestInterop):
+ 					self.cObject.SetCP(self.cp)
+ 					self.cObject.SetPath(self.currPath)
++					self.cObject.SetImportRoot(self.importRoot)
+ 					self.cObject.SetParser(self)
+ 				if isinstance(self.cObject,Manifest):
+ 					if self.currPath.endswith("imsmanifest.xml"):
+ 						self.cObject.SetCP(self.cp)
+ 						self.cObject.SetPath(self.currPath)
++						self.cObject.SetImportRoot(self.importRoot)
+ 						self.manifest = self.cObject
+ 						self.manifest_path = self.currPath.replace("imsmanifest.xml", '')
+ 					else:

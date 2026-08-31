@@ -12,20 +12,27 @@ and on top of that:
 
 - Canvas configurations:
    
-   - Installed from upstream git repo in /var/www/canvas providing an
-     easy upgrade path.
+   - Installed from the official Canvas ``prod`` channel in
+     ``/var/www/canvas`` at a verified source commit, with a pinned and hashed
+     official upstream fix for that release's asset-build dependency error.
 
      **Security note**: Updates to Canvas may require supervision so
      they **ARE NOT** configured to install automatically. See `Canvas
      documentation`_ for upgrade instructions.
 
-   - Installed Redis Server from Buster repos.
+     ``turnkey-canvas-update --check`` reports the installed and eligible
+     production commits. ``--apply --dry-run`` shows the supervised update
+     target without changing the appliance.
+
+   - Includes Redis Server from Debian Trixie.
    - Pre-configured to use PostgreSQL (recommended for production).
    - Includes Canvas automated jobs daemon initscript.
    - Includes Apache pre-configured with Passenger support, with SSL
      support out of the box (performance, security).
-   - Includes NodeJS, NPM and Yarn required for compiling assets.
-   - Includes pre-configured Canvas Rich Content Editor API.
+   - Includes Debian Node.js 20 and NPM, plus Yarn Classic from the signed
+     official Yarn package channel, as required for compiling assets.
+   - Includes the official Canvas Rich Content Editor API at a verified
+     source commit.
 
 - SSL support out of the box.
 - Postfix MTA (bound to localhost) to allow sending of email (e.g.,

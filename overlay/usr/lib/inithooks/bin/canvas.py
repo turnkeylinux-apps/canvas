@@ -2,7 +2,7 @@
 """Set Canvas admin password, email and domain to serve
 
 Option:
-    --pass=     unless provided, will ask interactively
+    --pass-stdin read the password from standard input
     --email=    unless provided, will ask interactively
     --domain=   unless provided, will ask interactively
                 DEFAULT=www.example.com
@@ -10,11 +10,10 @@ Option:
 
 import sys
 import getopt
-import hashlib
-import random
-import string
-import psycopg2
+import json
+import re
 import subprocess
+from pathlib import Path
 
 from libinithooks import inithooks_cache
 from libinithooks.dialog_wrapper import Dialog
@@ -22,7 +21,7 @@ from libinithooks.dialog_wrapper import Dialog
 
 def usage(s=None):
     if s:
-        print("Error:", s, file=sys.stderr, **kwargs)
+        print("Error:", s, file=sys.stderr)
     print("Syntax: %s [options]" % sys.argv[0], file=sys.stderr)
     print(__doc__, file=sys.stderr)
     sys.exit(1)
@@ -33,25 +32,36 @@ DEFAULT_DOMAIN = "www.example.com"
 
 def main():
     try:
-        opts, args = getopt.gnu_getopt(sys.argv[1:], "h",
-                                       ['help', 'pass=', 'email=', 'domain='])
+        opts, args = getopt.gnu_getopt(
+            sys.argv[1:], "h",
+            ['help', 'pass=', 'pass-stdin', 'email=', 'domain='])
     except getopt.GetoptError as e:
         usage(e)
 
     email = ""
     domain = ""
     password = ""
+    password_stdin = False
     for opt, val in opts:
         if opt in ('-h', '--help'):
             usage()
         elif opt == '--pass':
             password = val
+        elif opt == '--pass-stdin':
+            password_stdin = True
         elif opt == '--email':
             email = val
         elif opt == '--domain':
             domain = val
 
-    if not password:
+    if password and password_stdin:
+        usage('--pass and --pass-stdin are mutually exclusive')
+
+    if password_stdin:
+        password = sys.stdin.read()
+        if not password:
+            usage('standard input did not contain a password')
+    elif not password:
         d = Dialog('TurnKey Linux - First boot configuration')
         password = d.get_password(
             "Canvas Password",
@@ -82,52 +92,59 @@ def main():
 
     inithooks_cache.write('APP_DOMAIN', domain)
 
-    salt = "".join(random.choice(string.ascii_letters) for line in range(20))
-    hash = password + salt
-    for i in range(20):
-        hash = hashlib.sha512(hash.encode('utf-8')).hexdigest()
+    payload = json.dumps({'password': password, 'email': email})
+    rails_script = f'''\
+require "json"
+payload = JSON.parse({json.dumps(payload)})
+user = User.find(1)
+pseudonym = user.pseudonyms.active.first!
+pseudonym.unique_id = payload.fetch("email")
+pseudonym.password = payload.fetch("password")
+pseudonym.password_confirmation = payload.fetch("password")
+pseudonym.save!
+user.update!(name: payload.fetch("email"),
+             short_name: payload.fetch("email"),
+             sortable_name: payload.fetch("email"))
+channel = user.communication_channels.first
+channel.update!(path: payload.fetch("email")) if channel
+'''
+    subprocess.run(
+        [
+            'su', '-s', '/bin/bash', '-l', 'www-data', '-c',
+            'cd /var/www/canvas && RAILS_ENV=production '
+            'BUNDLE_PATH=vendor/bundle bundle exec rails runner -',
+        ],
+        input=rails_script,
+        text=True,
+        check=True,
+    )
 
-    access_token = "".join(random.choice(string.ascii_letters)
-                           for line in range(20))
+    def replace_yaml_value(config, key, value):
+        path = Path(config)
+        pattern = re.compile(
+            rf'^(\s*{re.escape(key)}:\s*).*$', re.MULTILINE)
+        updated, count = pattern.subn(
+            lambda match: match.group(1) + json.dumps(value),
+            path.read_text(encoding='utf-8'))
+        if count != 1:
+            raise RuntimeError(
+                f'{config} contained {count} values for {key}, expected one')
+        path.write_text(updated, encoding='utf-8')
 
-    conn = psycopg2.connect("dbname=canvas_production user=root")
-    c = conn.cursor()
-    c.execute('UPDATE users SET name=%s, sortable_name=%s WHERE id=1;',
-              (email, email))
-    c.execute('UPDATE pseudonyms SET unique_id=%s, crypted_password=%s, password_salt=%s, single_access_token=%s WHERE user_id=1;',
-              (email, hash, salt, access_token))
-    c.execute('UPDATE communication_channels SET path=%s WHERE id=1;',
-              (email, ))
-    conn.commit()
-    c.close()
-    conn.close()
-
-    config = "/var/www/canvas/config/outgoing_mail.yml"
-    subprocess.run(["sed", "-ri",
-                    's|domain:.*|domain: "%s"|' % domain,
-                    config])
-    subprocess.run(["sed", "-ri",
-                    's|outgoing_address:.*|outgoing_address: "%s"|' % email,
-                    config])
-
-    config = "/var/www/canvas/config/dynamic_settings.yml"
-    subprocess.run(["sed", "-ri",
-                    's|app-host:.*|app-host: "%s:3000"|' % domain,
-                    config])
-
-    config = "/var/www/canvas/config/domain.yml"
-    subprocess.run(["sed", "-ri",
-                    's|domain:.*|domain: "%s"|' % domain,
-                    config])
-
-    config = "/var/www/canvas/config/initializers/outgoing_mail.rb"
-    subprocess.run(["sed", "-ri",
-                    's|:domain => .*|:domain => "%s",|' % domain,
-                    config])
+    replace_yaml_value(
+        '/var/www/canvas/config/outgoing_mail.yml', 'domain', domain)
+    replace_yaml_value(
+        '/var/www/canvas/config/outgoing_mail.yml',
+        'outgoing_address', email)
+    replace_yaml_value(
+        '/var/www/canvas/config/dynamic_settings.yml',
+        'app-host', f'{domain}:3000')
+    replace_yaml_value(
+        '/var/www/canvas/config/domain.yml', 'domain', domain)
 
     print("Restarting services; please wait...")
     for service in ['canvas_init', 'apache2']:
-        subprocess.run(['systemctl', 'restart', service])
+        subprocess.run(['systemctl', 'restart', service], check=True)
 
 
 if __name__ == "__main__":
